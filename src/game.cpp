@@ -20,7 +20,7 @@ Game::~Game()
 void Game::Run()
 {
     // open window
-    ServiceLocator::GetWindow()->OpenWindow();
+    ServiceLocator::GetWindow()->OpenWindow({.title = mTitle, .width = 800, .height = 600});
 
     //run the game
     while(mRunning)

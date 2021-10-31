@@ -6,7 +6,7 @@ class CustomWindow : public Window
 {
     public:
         CustomWindow();
-        virtual void OpenWindow() override;
+        virtual void OpenWindow(WindowData _data) override;
         virtual bool Update() override;
     private:
         GLFWwindow*  mWindow;
