@@ -2,15 +2,15 @@
 
 CustomWindow::CustomWindow()
 {
-    _window = nullptr;
+    mWindow = nullptr;
 }
 void CustomWindow::OpenWindow()
 {
     glfwInit();
-    _window = glfwCreateWindow(800, 600, "Avarice Engine", nullptr, nullptr);
+    mWindow = glfwCreateWindow(800, 600, "Avarice Engine", nullptr, nullptr);
 }
 bool CustomWindow::Update()
 {
     glfwPollEvents();
-    return glfwWindowShouldClose(_window );
+    return glfwWindowShouldClose(mWindow );
 }

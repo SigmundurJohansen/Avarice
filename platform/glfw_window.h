@@ -9,5 +9,5 @@ class CustomWindow : public Window
         virtual void OpenWindow() override;
         virtual bool Update() override;
     private:
-        GLFWwindow*  _window;
+        GLFWwindow*  mWindow;
 };
