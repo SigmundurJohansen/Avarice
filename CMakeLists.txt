@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 # external libraries
 add_subdirectory(external/glm)
 add_subdirectory(external/glfw)
+add_subdirectory(external/vk-bootstrap)
 
 file(GLOB SOURCES "*cpp", "*/*.cpp", "*/*/*.cpp")
 
@@ -19,6 +20,7 @@ target_include_directories(${PROJECT_NAME}
         glm
         PRIVATE
         glfw
+        vk-bootstrap
 )
 
 target_link_libraries(${PROJECT_NAME}
