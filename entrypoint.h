@@ -1,16 +1,17 @@
 #pragma once
-#include "include/engine.h"
-#include "include/game.h"
-#include "include/service_locator.h"
+#include "src/engine.h"
+#include "src/game.h"
+#include "src/service_locator.h"
+#include "game.h"
 
 
 int main(int argc, char **argv)
 {
 
-    //auto* theGame = CreateGame();
-    Engine::printHello();
+    auto* theGame = CreateGame();
+    Engine::Init();
 
     ServiceLocator::GetWindow()->OpenWindow();
 
-    //while(!ServiceLocator::GetWIndow()->Update())    {    }
+    while(!ServiceLocator::GetWindow()->Update())    {    }
 }
