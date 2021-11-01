@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 
+namespace Avarice{
 class Game
 {
     public:
@@ -22,3 +23,5 @@ class Game
 };
 
 extern Game* CreateGame();
+
+}

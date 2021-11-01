@@ -1,7 +1,9 @@
 #include "game.h"
 #include "service_locator.h"
 #include "../platform/glfw_window.h"
+#include "rendering/vulkan/vulkan_renderer.h"
 
+namespace Avarice{
 Game::Game() : Game("Super Gamge")
 {
     
@@ -38,7 +40,7 @@ void Game::Run()
         // update pyhsics
 
         // draw
-
+        ServiceLocator::GetRenderer()->RenderFrame();
     }
 }
 
@@ -50,10 +52,15 @@ void Game::initializeServices()
     // initialize input system
 
     // initialize renderer 
-
+    RendererSettings settings
+    {
+        .ApplicationName = mTitle
+    };
+    ServiceLocator::Provide(new VulkanRenderer(), settings);
 }
 
 void Game::shutdownServices()
 {
     ServiceLocator::ShutdownServices();
+}
 }
