@@ -11,6 +11,7 @@ add_subdirectory(external/vk-bootstrap)
 #library find functions
 find_package(Vulkan REQUIRED)
 
+
 file(GLOB SOURCES "*cpp", "*/*.cpp", "*/*/*.cpp", "*/*/*/*.cpp") #, "*/*/*/*.cpp", "*/*/*/*/*.cpp"
 
 add_library(${PROJECT_NAME} ${SOURCES})
@@ -33,5 +34,7 @@ target_link_libraries(${PROJECT_NAME}
     PRIVATE
         ${Vulkan_LIBRARIES}
         glfw
-        vk-bootstrap
+        vk-bootstrap::vk-bootstrap
 )
+
+include(CTest)
