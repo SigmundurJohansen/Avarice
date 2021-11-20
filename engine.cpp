@@ -2,7 +2,7 @@
 #include <glm/glm.hpp>
 #include <GLFW/glfw3.h>
 
-#include "platform/glfw_window.h"
+#include "platform/custom_window.h"
 #include "service_locator.h"
 
 

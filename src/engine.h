@@ -1,6 +1,6 @@
 #include <iostream>
 
 struct Engine{
-    static void printHello();
+    static void PrintHello();
     static void Init();
 };

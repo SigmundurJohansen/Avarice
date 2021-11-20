@@ -1,7 +1,8 @@
-#include "glfw_window.h"
+#include "custom_window.h"
 
 
 namespace Avarice{
+
 CustomWindow::CustomWindow()
 {
     mWindow = nullptr;
@@ -19,4 +20,10 @@ bool CustomWindow::Update()
     glfwPollEvents();
     return glfwWindowShouldClose(mWindow );
 }
+
+void CustomWindow::RequestDrawSurface()
+{
+    
+}
+
 }

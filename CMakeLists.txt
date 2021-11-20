@@ -8,33 +8,34 @@ add_subdirectory(external/glm)
 add_subdirectory(external/glfw)
 add_subdirectory(external/vk-bootstrap)
 
+
 #library find functions
 find_package(Vulkan REQUIRED)
 
-
-file(GLOB SOURCES "*cpp", "*/*.cpp", "*/*/*.cpp", "*/*/*/*.cpp") #, "*/*/*/*.cpp", "*/*/*/*/*.cpp"
+file(GLOB SOURCES "*.cpp", "*/*.cpp", "*/*/*.cpp", "*/*/*/*.cpp") #, "*/*/*/*.cpp", "*/*/*/*/*.cpp"
 
 add_library(${PROJECT_NAME} ${SOURCES})
 
 
-target_include_directories(${PROJECT_NAME}
-    PUBLIC
-        $<INSTALL_INTERFACE:src>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-        glm
-    PRIVATE
-        ${Vulkan_INCLUDE_DIRS}
-        glfw
-        vk-bootstrap
+target_include_directories(${PROJECT_NAME} 
+    PUBLIC 
+        $<INSTALL_INTERFACE:include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${Vulkan_INCLUDE_DIRS} 
+        ${CMAKE_DL_LIBS}
+        glm 
+    PRIVATE 
+        glfw 
+        vk-bootstrap 
 )
 
-target_link_libraries(${PROJECT_NAME}
-    PUBLIC
-        glm
-    PRIVATE
-        ${Vulkan_LIBRARIES}
-        glfw
-        vk-bootstrap::vk-bootstrap
-)
+target_link_libraries(${PROJECT_NAME} 
+    PUBLIC 
+        ${Vulkan_LIBRARIES} 
+        vk-bootstrap 
+        glm 
+    PRIVATE 
+        glfw 
+) 
 
-include(CTest)

@@ -9,21 +9,21 @@ class ServiceLocator
     public:
     static inline const std::unique_ptr<Window>& GetWindow()
     {
-        return mWindow;
+        return m_Window;
     }
-    static inline const std::unique_ptr<Renderer> &GetRenderer() {return mRenderer;}
+    static inline const std::unique_ptr<Renderer> &GetRenderer() {return m_Renderer;}
     static inline void Provide(Window* window)
     {
-        if(mWindow != nullptr) return;
-        mWindow = std::unique_ptr<Window>(window);
+        if(m_Window != nullptr) return;
+        m_Window = std::unique_ptr<Window>(window);
     }
 
     static inline void Provide(Renderer* _renderer, RendererSettings _rendererSettings)
     {
-        if(mRenderer != nullptr) return;
+        if(m_Renderer != nullptr) return;
 
-        mRenderer = std::unique_ptr<Renderer>(_renderer);
-        mRenderer->Init(_rendererSettings);
+        m_Renderer = std::unique_ptr<Renderer>(_renderer);
+        m_Renderer->Init(_rendererSettings);
     }
 
     static inline void ShutdownServices()
@@ -32,13 +32,13 @@ class ServiceLocator
     }
 
     private:
-    static inline std::unique_ptr<Window> mWindow = nullptr;
-    static inline std::unique_ptr<Renderer> mRenderer = nullptr;
+    static inline std::unique_ptr<Window> m_Window = nullptr;
+    static inline std::unique_ptr<Renderer> m_Renderer = nullptr;
 
     static inline void shutdownWindow()
     {
-        mWindow.reset();
-        mWindow = nullptr;   
+        m_Window.reset();
+        m_Window = nullptr;   
     }
 
 };

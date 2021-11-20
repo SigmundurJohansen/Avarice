@@ -6,17 +6,17 @@ class Game
 {
     public:
     Game();
-    explicit Game(std::string windowTitle);
+    explicit Game(std::string _windowTitle);
     ~Game();
 
     void Run();
     protected:
-    virtual void PhysicsUpdate(float deltaTime){};
-    virtual void Update(float deltaTime) {};
+    virtual void PhysicsUpdate(float _deltaTime){};
+    virtual void Update(float _deltaTime) {};
 
     private:
-    std::string mTitle;
-    bool mRunning;
+    std::string m_Title;
+    bool m_Running;
 
     void initializeServices();
     void shutdownServices();

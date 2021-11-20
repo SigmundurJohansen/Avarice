@@ -1,6 +1,6 @@
 #include "game.h"
 #include "service_locator.h"
-#include "../platform/glfw_window.h"
+#include "../platform/custom_window.h"
 #include "rendering/vulkan/vulkan_renderer.h"
 
 namespace Avarice{
@@ -9,7 +9,7 @@ Game::Game() : Game("Super Gamge")
     
 }
 
-Game::Game(std::string windowTitle) : mTitle(std::move(windowTitle)), mRunning(true)
+Game::Game(std::string windowTitle) : m_Title(std::move(windowTitle)), m_Running(true)
 {
     initializeServices();
 }
@@ -22,14 +22,14 @@ Game::~Game()
 void Game::Run()
 {
     // open window
-    ServiceLocator::GetWindow()->OpenWindow({.title = mTitle, .width = 800, .height = 600});
+    ServiceLocator::GetWindow()->OpenWindow({.title = m_Title, .width = 800, .height = 600});
 
     //run the game
-    while(mRunning)
+    while(m_Running)
     {
         if(ServiceLocator::GetWindow()->Update())
         {
-            mRunning = false;
+            m_Running = false;
             continue;
         }
 
@@ -54,7 +54,7 @@ void Game::initializeServices()
     // initialize renderer 
     RendererSettings settings
     {
-        .ApplicationName = mTitle
+        .ApplicationName = m_Title
     };
     ServiceLocator::Provide(new VulkanRenderer(), settings);
 }
