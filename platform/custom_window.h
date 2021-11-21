@@ -12,8 +12,9 @@ class CustomWindow : public Window
         virtual void OpenWindow(WindowData _data) override;
         virtual bool Update() override;
 
-        virtual void RequestDrawSurface() override;
+        virtual void RequestDrawSurface(std::unordered_map<SurfaceArgs, std::any> _args) override;
+        std::pair<int,int> GetWindowExtents() override;
     private:
-        GLFWwindow*  mWindow;
+        GLFWwindow*  m_Window;
 };
 }

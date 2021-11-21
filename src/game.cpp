@@ -21,8 +21,6 @@ Game::~Game()
 
 void Game::Run()
 {
-    // open window
-    ServiceLocator::GetWindow()->OpenWindow({.title = m_Title, .width = 800, .height = 600});
 
     //run the game
     while(m_Running)
@@ -49,6 +47,9 @@ void Game::initializeServices()
     // provide window
     ServiceLocator::Provide(new CustomWindow());
 
+    // open window
+    ServiceLocator::GetWindow()->OpenWindow({.title = m_Title, .width = 800, .height = 600});
+    
     // initialize input system
 
     // initialize renderer 
