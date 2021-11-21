@@ -16,6 +16,12 @@ namespace Avarice
 
     void VulkanRenderer::Shutdown()
     {
+        vkDeviceWaitIdle(m_device);
+        vkDestroyFence(m_device, m_renderFence, nullptr);
+        vkDestroySemaphore(m_device, m_presentSemaphore, nullptr);
+        vkDestroySemaphore(m_device, m_renderSemaphore, nullptr);
+
+
         for(auto framebuffer : m_framebuffers)
         {
             vkDestroyFramebuffer(m_device,framebuffer, nullptr);
