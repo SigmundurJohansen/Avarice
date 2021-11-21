@@ -38,11 +38,15 @@ class VulkanRenderer : public Renderer{
     // Render passes
     VkRenderPass m_renderPass;
     std::vector<VkFramebuffer> m_framebuffers{3};
+    // Syncronization objects
+    VkSemaphore m_presentSemaphore, m_renderSemaphore;
+    VkFence m_renderFence;
 
     void InitCore();
     void CreateSwapchain();
     void CreateCommands();
     void CreateDefaultRenderPass();
     void CreateFramebuffers();
+    void CreateSyncStructures();
 };
 }

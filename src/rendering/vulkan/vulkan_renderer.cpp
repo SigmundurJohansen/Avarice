@@ -8,7 +8,12 @@ namespace Avarice
         m_rendererSettings = _settings;
         InitCore();
         CreateSwapchain();
+        CreateCommands();
+        CreateDefaultRenderPass();
+        CreateFramebuffers();
+        CreateSyncStructures();
     }
+    
     void VulkanRenderer::Shutdown()
     {
         for(auto framebuffer : m_framebuffers)
@@ -16,7 +21,7 @@ namespace Avarice
             vkDestroyFramebuffer(m_device,framebuffer, nullptr);
         }
         vkDestroyRenderPass(m_device, m_renderPass, nullptr);
-        
+
         vkDestroyCommandPool(m_device, m_commandPool, nullptr);
         vkDestroySwapchainKHR(m_device, m_swapchain, nullptr);
 
@@ -150,5 +155,15 @@ namespace Avarice
             framebufferCreateInfo.pAttachments = &m_swapchainImageViews[i];
             VK_CHECK(vkCreateFramebuffer(m_device,&framebufferCreateInfo,nullptr,&m_framebuffers[i]));
         }
+    }
+    void VulkanRenderer::CreateSyncStructures()
+    {
+        VkFenceCreateInfo fenceCreateINfo { VK_STRUCTURE_TYPE_FENCE_CREATE_INFO};
+        fenceCreateINfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+        VK_CHECK(vkCreateFence(m_device, &fenceCreateINfo, nullptr, &m_renderFence));
+
+        VkSemaphoreCreateInfo semaphoreCreateInfo { VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
+        VK_CHECK(vkCreateSemaphore(m_device, &semaphoreCreateInfo, nullptr, &m_presentSemaphore));
+        VK_CHECK(vkCreateSemaphore(m_device, &semaphoreCreateInfo, nullptr, &m_renderSemaphore));
     }
 }
