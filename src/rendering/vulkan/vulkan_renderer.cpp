@@ -13,7 +13,7 @@ namespace Avarice
         CreateFramebuffers();
         CreateSyncStructures();
     }
-    
+
     void VulkanRenderer::Shutdown()
     {
         for(auto framebuffer : m_framebuffers)
@@ -37,7 +37,68 @@ namespace Avarice
     }
     void VulkanRenderer::RenderFrame()
     {
+        VK_CHECK(vkWaitForFences(m_device, 1, &m_renderFence, true, 1000000000)); //1
+        VK_CHECK(vkResetFences(m_device,1,&m_renderFence)); //0
 
+        uint32_t swapchainIndex;
+        VK_CHECK(vkAcquireNextImageKHR(m_device, m_swapchain, 1000000000, m_presentSemaphore, nullptr, &swapchainIndex));
+        VK_CHECK(vkResetCommandBuffer(m_mainCommandBuffer, 0));
+        VkCommandBuffer cmd = m_mainCommandBuffer;
+        VkCommandBufferBeginInfo beginInfo { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+        VK_CHECK(vkBeginCommandBuffer(cmd, &beginInfo));
+
+        float flashColour = abs(sin((float)m_frameNumber/120.f));
+        VkClearValue clearValue{
+            .color = {0.f, 0.f, flashColour, 1.f}
+        };
+
+        VkRenderPassBeginInfo renderPassBeginInfo { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
+        renderPassBeginInfo.renderPass = m_renderPass;
+        renderPassBeginInfo.renderArea = {
+            .offset = {
+                .x = 0,
+                .y = 0
+            },
+            .extent = m_windowExtent
+        };
+
+        renderPassBeginInfo.framebuffer = m_framebuffers[swapchainIndex];
+        // connect clear values
+        renderPassBeginInfo.clearValueCount = 1;
+        renderPassBeginInfo.pClearValues = &clearValue;
+
+        vkCmdBeginRenderPass(cmd, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+        // draw calls
+        vkCmdEndRenderPass(cmd);
+        VK_CHECK(vkEndCommandBuffer(cmd));
+
+        VkSubmitInfo submit { VK_STRUCTURE_TYPE_SUBMIT_INFO};
+        VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        submit.pWaitDstStageMask = &waitStage;
+
+        submit.waitSemaphoreCount = 1;
+        submit.pWaitSemaphores = &m_presentSemaphore;
+
+        submit.signalSemaphoreCount = 1;
+        submit.pSignalSemaphores = &m_renderSemaphore;
+        
+        submit.commandBufferCount = 1;
+        submit.pCommandBuffers = &m_mainCommandBuffer;
+
+        VK_CHECK(vkQueueSubmit(m_graphicsQueue, 1, &submit, m_renderFence));
+
+        VkPresentInfoKHR presentInfoKhr { VK_STRUCTURE_TYPE_PRESENT_INFO_KHR};
+        presentInfoKhr.swapchainCount = 1;
+        presentInfoKhr.pSwapchains = &m_swapchain;
+
+        presentInfoKhr.waitSemaphoreCount = 1;
+        presentInfoKhr.pWaitSemaphores = &m_renderSemaphore;
+
+        presentInfoKhr.pImageIndices = &swapchainIndex;
+        VK_CHECK(vkQueuePresentKHR(m_graphicsQueue, &presentInfoKhr));
+        m_frameNumber++;
     }
     void VulkanRenderer::InitCore()
     {
@@ -72,7 +133,7 @@ namespace Avarice
         m_device = vkbDevice.device;
         m_physicalDevice = vkbPhysicalDevice.physical_device;
 
-        m_graphcisQueue = vkbDevice.get_queue(vkb::QueueType::graphics).value();
+        m_graphicsQueue = vkbDevice.get_queue(vkb::QueueType::graphics).value();
         m_graphicsQueueFamily = vkbDevice.get_queue_index(vkb::QueueType::graphics).value();
     }
 

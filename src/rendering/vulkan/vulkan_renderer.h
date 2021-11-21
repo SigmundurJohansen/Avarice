@@ -17,6 +17,9 @@ class VulkanRenderer : public Renderer{
     void RenderFrame() override;
 
     private:
+    // todo: temporary frame number
+    uint64_t m_frameNumber {0};
+
     RendererSettings m_rendererSettings{};
     //core vulkan
     VkInstance m_instance;
@@ -31,7 +34,7 @@ class VulkanRenderer : public Renderer{
     std::vector<VkImageView> m_swapchainImageViews;
     VkExtent2D m_windowExtent;
     // command pools and queues
-    VkQueue m_graphcisQueue;
+    VkQueue m_graphicsQueue;
     uint32_t m_graphicsQueueFamily;
     VkCommandPool m_commandPool;
     VkCommandBuffer m_mainCommandBuffer;
