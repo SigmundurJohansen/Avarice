@@ -11,6 +11,12 @@ namespace Avarice
     }
     void VulkanRenderer::Shutdown()
     {
+        for(auto framebuffer : m_framebuffers)
+        {
+            vkDestroyFramebuffer(m_device,framebuffer, nullptr);
+        }
+        vkDestroyRenderPass(m_device, m_renderPass, nullptr);
+        
         vkDestroyCommandPool(m_device, m_commandPool, nullptr);
         vkDestroySwapchainKHR(m_device, m_swapchain, nullptr);
 
@@ -68,6 +74,8 @@ namespace Avarice
     void VulkanRenderer::CreateSwapchain()
     {
         auto [width, height] = ServiceLocator::GetWindow()->GetWindowExtents();
+        m_windowExtent.height = height;
+        m_windowExtent.width = width;
         vkb::SwapchainBuilder swapchainBuilder { m_physicalDevice, m_device, m_surface};
         vkb::Swapchain vkbSwapchain = swapchainBuilder 
                                         .use_default_format_selection() 
@@ -127,6 +135,20 @@ namespace Avarice
 
     void VulkanRenderer::CreateFramebuffers()
     {
+        VkFramebufferCreateInfo framebufferCreateInfo { VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO};
+        framebufferCreateInfo.renderPass = m_renderPass;
+        framebufferCreateInfo.attachmentCount = 1;
+        framebufferCreateInfo.width = m_windowExtent.width;
+        framebufferCreateInfo.height = m_windowExtent.height;
+        framebufferCreateInfo.layers = 1;
 
+        const uint32_t swapchainImageCount = m_swapchainImages.size();
+        m_framebuffers.resize(swapchainImageCount); 
+
+        for(int i = 0; i < swapchainImageCount; i ++)
+        {
+            framebufferCreateInfo.pAttachments = &m_swapchainImageViews[i];
+            VK_CHECK(vkCreateFramebuffer(m_device,&framebufferCreateInfo,nullptr,&m_framebuffers[i]));
+        }
     }
 }

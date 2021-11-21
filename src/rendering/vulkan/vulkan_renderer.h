@@ -29,6 +29,7 @@ class VulkanRenderer : public Renderer{
     VkFormat m_swapchainImageFormat;
     std::vector<VkImage> m_swapchainImages;
     std::vector<VkImageView> m_swapchainImageViews;
+    VkExtent2D m_windowExtent;
     // command pools and queues
     VkQueue m_graphcisQueue;
     uint32_t m_graphicsQueueFamily;
@@ -36,7 +37,7 @@ class VulkanRenderer : public Renderer{
     VkCommandBuffer m_mainCommandBuffer;
     // Render passes
     VkRenderPass m_renderPass;
-    std::vector<VkFramebuffer> m_framebuffers;
+    std::vector<VkFramebuffer> m_framebuffers{3};
 
     void InitCore();
     void CreateSwapchain();
