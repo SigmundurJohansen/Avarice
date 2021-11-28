@@ -217,7 +217,7 @@ namespace Avarice
         const uint32_t swapchainImageCount = m_swapchainImages.size();
         m_framebuffers.resize(swapchainImageCount); 
 
-        for(int i = 0; i < swapchainImageCount; i ++)
+        for(uint32_t i = 0; i < swapchainImageCount; i ++)
         {
             framebufferCreateInfo.pAttachments = &m_swapchainImageViews[i];
             VK_CHECK(vkCreateFramebuffer(m_device,&framebufferCreateInfo,nullptr,&m_framebuffers[i]));

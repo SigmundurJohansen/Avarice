@@ -39,3 +39,10 @@ target_link_libraries(${PROJECT_NAME}
         glfw 
 ) 
 
+# shader compilation
+file(GLOB SHADERS shaders/*.frag, shaders/*.vert)
+add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD COMMAND mkdir ${CMAKE_BINARY_DIR}/shaders)
+foreach(shader ${SHADERS})
+    get_filename_component(SHADER_NAME ${shader} NAME)
+    add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD COMMAND glslc -c ${shader} -o ${CMAKE_BINARY_DIR}/${SHADER_NAME}.spv)
+endforeach()
