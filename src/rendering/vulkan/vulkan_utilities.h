@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <vulkan/vulkan.h>
 
 #define VK_CHECK(x)                                                 \
     do{                                                             \
@@ -16,7 +17,8 @@ namespace Avarice
     
 class VulkanUtilities
 {
-    static bool LoadShaderModule(const std::string &_filepath, VkDevice _device, VkShaderModule &_outShaderModule);
+    public:
+    static bool LoadShaderModule(const std::string& _filepath, VkDevice _device, VkShaderModule &_outShaderModule);
 };
 
 }

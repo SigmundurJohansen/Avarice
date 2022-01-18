@@ -18,8 +18,8 @@ class Game
     std::string m_Title;
     bool m_Running;
 
-    void initializeServices();
-    void shutdownServices();
+    void Initialize();
+    void Shutdown();
 };
 
 extern Game* CreateGame();

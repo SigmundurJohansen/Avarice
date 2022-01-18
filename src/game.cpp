@@ -1,27 +1,23 @@
 #include "game.h"
-#include "service_locator.h"
-#include "../platform/custom_window.h"
+#include <service_locator.h>
 #include "rendering/vulkan/vulkan_renderer.h"
+#include "../platform/custom_window.h"
 
 namespace Avarice{
-Game::Game() : Game("Super Gamge")
-{
-    
-}
+Game::Game() : Game("Super Gamge"){  }
 
-Game::Game(std::string windowTitle) : m_Title(std::move(windowTitle)), m_Running(true)
+Game::Game(std::string _windowTitle) : m_Title(std::move(_windowTitle)), m_Running(true)
 {
-    initializeServices();
+    Initialize();
 }
 
 Game::~Game()
 {
-    shutdownServices();
+    Shutdown();
 }
 
 void Game::Run()
 {
-
     //run the game
     while(m_Running)
     {
@@ -42,7 +38,7 @@ void Game::Run()
     }
 }
 
-void Game::initializeServices()
+void Game::Initialize()
 {
     // provide window
     ServiceLocator::Provide(new CustomWindow());
@@ -60,7 +56,7 @@ void Game::initializeServices()
     ServiceLocator::Provide(new VulkanRenderer(), settings);
 }
 
-void Game::shutdownServices()
+void Game::Shutdown()
 {
     ServiceLocator::ShutdownServices();
 }

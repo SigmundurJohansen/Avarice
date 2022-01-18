@@ -1,12 +1,10 @@
 #pragma once
 
+#include <../rendering/renderer.h>
 #include <vulkan/vulkan.h>
-#include <../external/vk-bootstrap/src/VkBootstrap.h>
-#include "../renderer.h"
-#include "vulkan_initializers.h"
-#include "vulkan_types.h"
-#include "vulkan_utilities.h"
 #include <vector>
+#include <iostream>
+#include <fstream>
 
 namespace Avarice
 {
@@ -44,6 +42,9 @@ class VulkanRenderer : public Renderer{
     // Syncronization objects
     VkSemaphore m_presentSemaphore, m_renderSemaphore;
     VkFence m_renderFence;
+    // PIPELINES
+    VkPipelineLayout m_trianglePipelineLayout;
+    VkPipeline m_trianglePipeline;
 
     void InitCore();
     void CreateSwapchain();
@@ -51,5 +52,6 @@ class VulkanRenderer : public Renderer{
     void CreateDefaultRenderPass();
     void CreateFramebuffers();
     void CreateSyncStructures();
+    void CreatePipelines();
 };
 }

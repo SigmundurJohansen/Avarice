@@ -1,6 +1,6 @@
-#include "custom_window.h"
 #include <stdexcept>   // for exception, runtime_error, out_of_range
 #include <iostream>
+#include "custom_window.h"
 
 namespace Avarice{
 
@@ -53,7 +53,5 @@ void CustomWindow::RequestDrawSurface(std::unordered_map<SurfaceArgs, std::any> 
         std::cout << "Failed to cast window surface arguments: " << _error.what() << std::endl;
     }
 }
-
-
 
 }

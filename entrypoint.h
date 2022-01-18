@@ -1,6 +1,5 @@
 #pragma once
-#include "src/game.h"
-#include "service_locator.h"
+#include "include/service_locator.h"
 #include "game.h"
 
 

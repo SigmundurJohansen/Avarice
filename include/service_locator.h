@@ -1,16 +1,13 @@
 #pragma once
 #include <memory>
 #include "window.h"
-#include "rendering/renderer.h"
+#include "../rendering/renderer.h"
 
 namespace Avarice{
 class ServiceLocator 
 {
     public:
-    static inline const std::unique_ptr<Window>& GetWindow()
-    {
-        return m_Window;
-    }
+    static inline const std::unique_ptr<Window> &GetWindow() { return m_Window; }
     static inline const std::unique_ptr<Renderer> &GetRenderer() {return m_Renderer;}
     static inline void Provide(Window* window)
     {

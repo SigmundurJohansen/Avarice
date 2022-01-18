@@ -1,7 +1,7 @@
 #version 450
 
 // declare out frag color
-layout(location = 0) out vec4 outFragColour;
+layout (location = 0) out vec4 outFragColour;
 
 void main()
 {
