@@ -27,6 +27,7 @@ target_include_directories(${PROJECT_NAME}
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${CMAKE_CURRENT_SOURCE_DIR}/rendering
+        ${CMAKE_CURRENT_SOURCE_DIR}/input
         ${CMAKE_DL_LIBS}
         glm
     PRIVATE

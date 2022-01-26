@@ -27,6 +27,9 @@ void Game::Run()
             continue;
         }
 
+        if (ServiceLocator::GetInputManager()) {
+            ServiceLocator::GetInputManager()->processInput();
+        }
         // calculate delta time
 
         // update game state
@@ -40,6 +43,8 @@ void Game::Run()
 
 void Game::Initialize()
 {
+        // provide input manager
+    ServiceLocator::Provide(new InputManager());
     // provide window
     ServiceLocator::Provide(new CustomWindow());
 

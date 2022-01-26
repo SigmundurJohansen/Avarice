@@ -1,9 +1,10 @@
 #version 450
 
-// declare out frag color
+layout (location = 0) in vec3 inColour;
+
 layout (location = 0) out vec4 outFragColour;
 
 void main()
 {
-    outFragColour = vec4(1.f, 0.5f, 0.25f, 1.0f);
+    outFragColour = vec4(inColour, 1.0f);
 }

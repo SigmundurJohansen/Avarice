@@ -270,14 +270,14 @@ namespace Avarice
         outfile.close();
         */
         VkShaderModule triangleFragShader;
-        if (!VulkanUtilities::LoadShaderModule("../shaders/triangle.frag.spv", m_device, triangleFragShader)) {
+        if (!VulkanUtilities::LoadShaderModule("../external/engine/shaders/triangle.frag.spv", m_device, triangleFragShader)) {
             std::cout << "Failed to load triangle fragment shader module\n";
         } else {
             std::cout << "Successfully loaded triangle fragment shader module\n";
         }
 
         VkShaderModule triangleVertShader;
-        if (!VulkanUtilities::LoadShaderModule("../shaders/triangle.vert.spv", m_device, triangleVertShader)) {
+        if (!VulkanUtilities::LoadShaderModule("../external/engine/shaders/triangle.vert.spv", m_device, triangleVertShader)) {
             std::cout << "Failed to load triangle vertex shader module\n";
         } else {
             std::cout << "Successfully loaded triangle vertex shader module\n";
