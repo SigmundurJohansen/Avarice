@@ -1,8 +1,8 @@
 
 #pragma once
 #include <unordered_map>
-#include "../input/input_key.h"
-#include "../input/input_devices.h"
+#include "../inputs/input_key.h"
+#include "../inputs/input_devices.h"
 #include <GLFW/glfw3.h>
 
 namespace Avarice {

@@ -1,5 +1,5 @@
 
-#include <../input/input_manager.h>
+#include <../inputs/input_manager.h>
 
 #include <iostream>
 

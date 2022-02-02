@@ -1,7 +1,7 @@
 #include "game.h"
 #include <service_locator.h>
 #include "rendering/vulkan/vulkan_renderer.h"
-#include "../platform/custom_window.h"
+#include "../platforms/custom_window.h"
 
 namespace Avarice{
 Game::Game() : Game("Super Gamge"){  }

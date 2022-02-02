@@ -2,7 +2,7 @@
 #include <memory>
 #include "window.h"
 #include "../rendering/renderer.h"
-#include "../input/input_manager.h"
+#include "../inputs/input_manager.h"
 
 namespace Avarice{
 class ServiceLocator 
