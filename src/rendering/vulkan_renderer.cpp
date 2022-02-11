@@ -48,8 +48,8 @@ namespace Avarice
 
         vkDestroyDevice(m_device, nullptr);
         vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
-        vkb::destroy_debug_utils_messenger(m_instance, m_debugMessenger);
-        vkDestroyInstance(m_instance,nullptr);
+        //vkb::destroy_debug_utils_messenger(m_instance, m_debugMessenger);
+        vkDestroyInstance(m_instance, nullptr);
     }
 
     void VulkanRenderer::RenderFrame()

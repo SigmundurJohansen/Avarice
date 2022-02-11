@@ -1,19 +1,18 @@
 #pragma once
 #include <string>
 
-namespace Avarice{
-struct RendererSettings
+namespace Avarice
 {
-    std::string ApplicationName;
-};
+    struct RendererSettings
+    {
+        std::string ApplicationName;
+    };
 
-class Renderer
-{
+    class Renderer
+    {
     public:
-    virtual void Init(RendererSettings) = 0;
-    virtual void Shutdown() = 0;
-    virtual void RenderFrame() = 0;
-};
-
-
+        virtual void Init(RendererSettings) = 0;
+        virtual void Shutdown() = 0;
+        virtual void RenderFrame() = 0;
+    };
 }

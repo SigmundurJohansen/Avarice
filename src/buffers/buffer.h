@@ -1,0 +1,32 @@
+#pragma once
+#include "rendering/vulkan_utilities.h"
+#include "command_buffer.h"
+
+namespace Avarice {
+    
+class Buffer {
+public:
+	enum class Status {
+		Reset, Changed, Normal
+	};
+
+	Buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, const void *data = nullptr);
+
+	virtual ~Buffer();
+
+	void MapMemory(void **data) const;
+	void UnmapMemory() const;
+
+	VkDeviceSize GetSize() const { return size; }
+	const VkBuffer &GetBuffer() const { return buffer; }
+	static uint32_t FindMemoryType(uint32_t typeFilter, const VkMemoryPropertyFlags &requiredProperties);
+
+	static void InsertBufferMemoryBarrier(const CommandBuffer &commandBuffer, const VkBuffer &buffer, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask,
+		VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask, VkDeviceSize offset = 0, VkDeviceSize size = VK_WHOLE_SIZE);
+
+protected:
+	VkDeviceSize size;
+	VkBuffer buffer = VK_NULL_HANDLE;
+	VkDeviceMemory bufferMemory = VK_NULL_HANDLE;
+};
+}

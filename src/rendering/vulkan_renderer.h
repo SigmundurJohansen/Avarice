@@ -9,12 +9,15 @@
 namespace Avarice
 {
 class VulkanRenderer : public Renderer{
+    private:
+    static VulkanRenderer m_renderer;
     public:
+    VulkanRenderer &GetGO() {  return m_renderer; }
     void Init(RendererSettings _settings) override;
     void Shutdown() override;
     void RenderFrame() override;
 
-    private:
+    //private:
     // todo: temporary frame number
     uint64_t m_frameNumber {0};
 

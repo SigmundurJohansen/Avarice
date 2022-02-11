@@ -1,6 +1,6 @@
 #include "game.h"
 #include <service_locator.h>
-#include "rendering/vulkan/vulkan_renderer.h"
+#include "rendering/vulkan_renderer.h"
 #include "../platforms/custom_window.h"
 
 namespace Avarice{
