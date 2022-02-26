@@ -1,6 +1,6 @@
 
 #include "swapchain.h"
-#include "graphics.h"
+#include "../graphics.h"
 
 namespace Avarice {
 static const std::vector<VkCompositeAlphaFlagBitsKHR> COMPOSITE_ALPHA_FLAGS = {

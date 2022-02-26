@@ -1,6 +1,7 @@
 #pragma once
-#include "rendering/vulkan_utilities.h"
-#include "command_buffer.h"
+
+#include "../vulkan_utilities.h"
+#include "../buffers/command_buffer.h"
 
 namespace Avarice {
     

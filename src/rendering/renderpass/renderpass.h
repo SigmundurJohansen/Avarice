@@ -2,10 +2,10 @@
 
 #include <optional>
 #include <vector>
-#include "utils/non_copyable.h"
+#include "../../utils/non_copyable.h"
+#include "../../utils/type_info.h"
 
 namespace Avarice {
-class ImageDepth;
 class RenderStage;
 
 class Renderpass {
@@ -33,7 +33,7 @@ public:
 		VkAttachmentReference depthStencilAttachment = {};
 	};
 
-	Renderpass(const RenderStage &renderStage, VkFormat depthFormat, VkFormat surfaceFormat, VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT);
+	Renderpass(const RenderStage &_renderStage, VkFormat depthFormat, VkFormat surfaceFormat, VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT);
 	
 	~Renderpass();
 

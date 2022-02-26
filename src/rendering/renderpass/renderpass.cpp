@@ -1,17 +1,16 @@
-#include "renderpass.h"
-
-#include "graphics.h"
-#include "render_stage.h"
+#include "../renderpass/renderpass.h"
+#include "../graphics.h"
+#include "../rendermanager.h"
 
 namespace Avarice {
-Renderpass::Renderpass(const RenderStage &renderStage, VkFormat depthFormat, VkFormat surfaceFormat, VkSampleCountFlagBits samples) {
+Renderpass::Renderpass(const RenderStage &_renderStage, VkFormat _depthFormat, VkFormat _surfaceFormat, VkSampleCountFlagBits _samples) {
 	auto logicalDevice = Graphics::Get()->GetLogicalDevice();
 
 	// Creates the renderpasses attachment descriptions,
 	std::vector<VkAttachmentDescription> attachmentDescriptions;
 
-	for (const auto &attachment : renderStage.GetAttachments()) {
-		auto attachmentSamples = attachment.IsMultisampled() ? samples : VK_SAMPLE_COUNT_1_BIT;
+	for (const auto &attachment : _renderStage.GetAttachments()) {
+		auto attachmentSamples = attachment.IsMultisampled() ? _samples : VK_SAMPLE_COUNT_1_BIT;
 
 		VkAttachmentDescription attachmentDescription = {};
 		attachmentDescription.samples = attachmentSamples;
@@ -28,11 +27,11 @@ Renderpass::Renderpass(const RenderStage &renderStage, VkFormat depthFormat, VkF
 			break;
 		case Attachment::Type::Depth:
 			attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-			attachmentDescription.format = depthFormat;
+			attachmentDescription.format = _depthFormat;
 			break;
 		case Attachment::Type::Swapchain:
 			attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-			attachmentDescription.format = surfaceFormat;
+			attachmentDescription.format = _surfaceFormat;
 			break;
 		}
 
@@ -43,14 +42,14 @@ Renderpass::Renderpass(const RenderStage &renderStage, VkFormat depthFormat, VkF
 	std::vector<std::unique_ptr<SubpassDescription>> subpasses;
 	std::vector<VkSubpassDependency> dependencies;
 
-	for (const auto &subpassType : renderStage.GetSubpasses()) {
+	for (const auto &subpassType : _renderStage.GetSubpasses()) {
 		// Attachments.
 		std::vector<VkAttachmentReference> subpassColourAttachments;
 
 		std::optional<uint32_t> depthAttachment;
 
 		for (const auto &attachmentBinding : subpassType.GetAttachmentBindings()) {
-			auto attachment = renderStage.GetAttachment(attachmentBinding);
+			auto attachment = _renderStage.GetAttachment(attachmentBinding);
 
 			if (!attachment) {
 				Log::Error("Failed to find a renderpass attachment bound to: ", attachmentBinding, '\n');
@@ -79,7 +78,7 @@ Renderpass::Renderpass(const RenderStage &renderStage, VkFormat depthFormat, VkF
 		subpassDependency.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 		subpassDependency.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
-		if (subpassType.GetBinding() == renderStage.GetSubpasses().size()) {
+		if (subpassType.GetBinding() == _renderStage.GetSubpasses().size()) {
 			subpassDependency.dstSubpass = VK_SUBPASS_EXTERNAL;
 			subpassDependency.dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
 			subpassDependency.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;

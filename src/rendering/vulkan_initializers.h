@@ -11,10 +11,10 @@ namespace Avarice
         
         // RENDER PASS INITIALIZERS
 
-        static VkPipelineShaderStageCreateInfo PipelineShaderStageCreateInfo(VkShaderStageFlagBits stage, VkShaderModule shaderModule);
+        static VkPipelineShaderStageCreateInfo PipelineShaderStageCreateInfo(VkShaderStageFlagBits _stage, VkShaderModule _shaderModule);
         static VkPipelineVertexInputStateCreateInfo PipelineVertexInputStateCreateInfo();
-        static VkPipelineInputAssemblyStateCreateInfo PipelineInputAssemblyStateCreateInfo(VkPrimitiveTopology topology);
-        static VkPipelineRasterizationStateCreateInfo PipelineRasterizationStateCreateInfo(VkPolygonMode polygonMode);
+        static VkPipelineInputAssemblyStateCreateInfo PipelineInputAssemblyStateCreateInfo(VkPrimitiveTopology _topology);
+        static VkPipelineRasterizationStateCreateInfo PipelineRasterizationStateCreateInfo(VkPolygonMode _polygonMode);
         static VkPipelineMultisampleStateCreateInfo PipelineMultisampleStateCreateInfo();
         static VkPipelineColorBlendAttachmentState PipelineColorBlendAttachmentState();
 

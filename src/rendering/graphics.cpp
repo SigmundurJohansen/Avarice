@@ -1,82 +1,76 @@
 #include "graphics.h"
 #include <cstring>
+#include "service_locator.h"
+#include "subrender.h"
 //#include "Devices/Window.hpp"
-//#include "Subrender.hpp"
 
 namespace Avarice
 {
-	Graphics::Graphics() : elapsedPurge(5s),
-						   instance(std::make_unique<Instance>()),
-						   physicalDevice(std::make_unique<PhysicalDevice>(instance.get())),
-						   surface(std::make_unique<Surface>(instance.get(), physicalDevice.get())),
-						   logicalDevice(std::make_unique<LogicalDevice>(instance.get(), physicalDevice.get(), surface.get()))
+	Graphics::Graphics() : m_elapsedPurge(5s),
+						   m_instance(std::make_unique<Instance>()),
+						   m_physicalDevice(std::make_unique<PhysicalDevice>(m_instance.get())),
+						   m_surface(std::make_unique<Surface>(m_instance.get(), m_physicalDevice.get())),
+						   m_logicalDevice(std::make_unique<LogicalDevice>(m_instance.get(), m_physicalDevice.get(), m_surface.get()))
 	{
 		CreatePipelineCache();
 	}
 
 	Graphics::~Graphics()
 	{
-		auto graphicsQueue = logicalDevice->GetGraphicsQueue();
+		auto graphicsQueue = m_logicalDevice->GetGraphicsQueue();
 
 		CheckVk(vkQueueWaitIdle(graphicsQueue));
 
-		vkDestroyPipelineCache(*logicalDevice, pipelineCache, nullptr);
+		vkDestroyPipelineCache(*m_logicalDevice, m_pipelineCache, nullptr);
 
-		for (std::size_t i = 0; i < flightFences.size(); i++)
+		for (std::size_t i = 0; i < m_flightFences.size(); i++)
 		{
-			vkDestroyFence(*logicalDevice, flightFences[i], nullptr);
-			vkDestroySemaphore(*logicalDevice, renderCompletes[i], nullptr);
-			vkDestroySemaphore(*logicalDevice, presentCompletes[i], nullptr);
+			vkDestroyFence(*m_logicalDevice, m_flightFences[i], nullptr);
+			vkDestroySemaphore(*m_logicalDevice, m_renderCompletes[i], nullptr);
+			vkDestroySemaphore(*m_logicalDevice, m_presentCompletes[i], nullptr);
 		}
-		commandPools.clear();
-		commandBuffers.clear();
-		swapchain = nullptr;
-		renderer = nullptr;
+		m_commandPools.clear();
+		m_commandBuffers.clear();
+		m_swapchain = nullptr;
+		m_renderManager = nullptr;
 	}
 
 	void Graphics::Update()
 	{
-
-		if (!renderer->started)
+		if (!m_renderManager->started)
 		{
 			ResetRenderStages();
-			renderer->Start();
-			renderer->started = true;
+			m_renderManager->Start();
+			m_renderManager->started = true;
 		}
 
-		renderer->Update();
+		m_renderManager->Update();
 
-		auto acquireResult = swapchain->AcquireNextImage(presentCompletes[currentFrame], flightFences[currentFrame]);
+		auto acquireResult = m_swapchain->AcquireNextImage(m_presentCompletes[m_currentFrame], m_flightFences[m_currentFrame]);
 
 		if (acquireResult == VK_ERROR_OUT_OF_DATE_KHR)
-		{
 			RecreateSwapchain();
-			return;
-		}
 
 		if (acquireResult != VK_SUCCESS && acquireResult != VK_SUBOPTIMAL_KHR)
-		{
-			printf("Failed to acquire swap chain image!\n");
 			return;
-		}
 
 		Pipeline::Stage stage;
-
-		for (auto &renderStage : renderer->renderStages)
+		for (auto &renderStage : m_renderManager->m_renderStages)
 		{
 			renderStage->Update();
 
+			/// THIS!!!
 			if (!StartRenderpass(*renderStage))
 				return;
 
-			auto &commandBuffer = commandBuffers[swapchain->GetActiveImageIndex()];
+			auto &commandBuffer = m_commandBuffers[m_swapchain->GetActiveImageIndex()];
 
 			for (const auto &subpass : renderStage->GetSubpasses())
 			{
 				stage.second = subpass.GetBinding();
 
 				// Renders subpass subrender pipelines.
-				renderer->subrenderHolder.RenderStage(stage, *commandBuffer);
+				m_renderManager->m_subrenderHolder.RenderStage(stage, *commandBuffer);
 
 				if (subpass.GetBinding() != renderStage->GetSubpasses().back().GetBinding())
 					vkCmdNextSubpass(*commandBuffer, VK_SUBPASS_CONTENTS_INLINE);
@@ -85,130 +79,69 @@ namespace Avarice
 			EndRenderpass(*renderStage);
 			stage.first++;
 		}
-
 		// Purges unused command pools.
-		if (elapsedPurge.GetElapsed() != 0)
+		if (m_elapsedPurge.GetElapsed() != 0)
 		{
-			for (auto it = commandPools.begin(); it != commandPools.end();)
+			for (auto it = m_commandPools.begin(); it != m_commandPools.end();)
 			{
 				if ((*it).second.use_count() <= 1)
 				{
-					it = commandPools.erase(it);
+					it = m_commandPools.erase(it);
 					continue;
 				}
-
 				++it;
 			}
 		}
 	}
 
-	void Graphics::CheckVk(VkResult result)
+	void Graphics::CheckVk(VkResult _result)
 	{
-		if (result >= 0)
+		if (_result >= 0)
 			return;
 
-		auto failure = StringifyResultVk(result);
+		auto failure = StringifyResultVk(_result);
 
 		throw std::runtime_error("Vulkan error: " + failure);
 	}
 
-	void Graphics::CaptureScreenshot(const std::filesystem::path &filename) const
+	const std::shared_ptr<CommandPool> &Graphics::GetCommandPool(const std::thread::id &_threadId)
 	{
-		auto size = Window::Get()->GetSize();
-
-		VkImage dstImage;
-		VkDeviceMemory dstImageMemory;
-		auto supportsBlit = Image::CopyImage(swapchain->GetActiveImage(), dstImage, dstImageMemory, surface->GetFormat().format, {size.x, size.y, 1},
-											 VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, 0, 0);
-
-		// Get layout of the image (including row pitch).
-		VkImageSubresource imageSubresource = {};
-		imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		imageSubresource.mipLevel = 0;
-		imageSubresource.arrayLayer = 0;
-
-		VkSubresourceLayout dstSubresourceLayout;
-		vkGetImageSubresourceLayout(*logicalDevice, dstImage, &imageSubresource, &dstSubresourceLayout);
-
-		Bitmap bitmap(std::make_unique<uint8_t[]>(dstSubresourceLayout.size), size);
-
-		void *data;
-		vkMapMemory(*logicalDevice, dstImageMemory, dstSubresourceLayout.offset, dstSubresourceLayout.size, 0, &data);
-		std::memcpy(bitmap.GetData().get(), data, static_cast<size_t>(dstSubresourceLayout.size));
-		vkUnmapMemory(*logicalDevice, dstImageMemory);
-
-		// Frees temp image and memory.
-		vkFreeMemory(*logicalDevice, dstImageMemory, nullptr);
-		vkDestroyImage(*logicalDevice, dstImage, nullptr);
-
-		// Writes the screenshot bitmap to the file.
-		bitmap.Write(filename);
-	}
-
-	RenderStage *Graphics::GetRenderStage(uint32_t index) const
-	{
-		if (renderer)
-			return renderer->GetRenderStage(index);
-		return nullptr;
-	}
-
-	const Descriptor *Graphics::GetAttachment(const std::string &name) const
-	{
-		if (auto it = attachments.find(name); it != attachments.end())
-			return it->second;
-		return nullptr;
-	}
-
-	const std::shared_ptr<CommandPool> &Graphics::GetCommandPool(const std::thread::id &threadId)
-	{
-		if (auto it = commandPools.find(threadId); it != commandPools.end())
+		if (auto it = m_commandPools.find(_threadId); it != m_commandPools.end())
 			return it->second;
 		// TODO: Cleanup and fix crashes
-		return commandPools.emplace(threadId, std::make_shared<CommandPool>(threadId)).first->second;
+		return m_commandPools.emplace(_threadId, std::make_shared<CommandPool>(_threadId)).first->second;
 	}
 
 	void Graphics::CreatePipelineCache()
 	{
 		VkPipelineCacheCreateInfo pipelineCacheCreateInfo = {};
 		pipelineCacheCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
-		CheckVk(vkCreatePipelineCache(*logicalDevice, &pipelineCacheCreateInfo, nullptr, &pipelineCache));
-	}
-
-	void Graphics::ResetRenderStages()
-	{
-		RecreateSwapchain();
-
-		if (flightFences.size() != swapchain->GetImageCount())
-			RecreateCommandBuffers();
-
-		for (const auto &renderStage : renderer->renderStages)
-			renderStage->Rebuild(*swapchain);
-
-		RecreateAttachmentsMap();
+		CheckVk(vkCreatePipelineCache(*m_logicalDevice, &pipelineCacheCreateInfo, nullptr, &m_pipelineCache));
 	}
 
 	void Graphics::RecreateSwapchain()
 	{
-		vkDeviceWaitIdle(*logicalDevice);
+		vkDeviceWaitIdle(*m_logicalDevice);
 
-		VkExtent2D displayExtent = {Window::Get()->GetSize().x, Window::Get()->GetSize().y};
-		swapchain = std::make_unique<Swapchain>(displayExtent, swapchain.get());
+		auto [width, height] = ServiceLocator::GetWindow()->GetWindowExtents();
+		VkExtent2D displayExtent = {width, height};
+		m_swapchain = std::make_unique<Swapchain>(displayExtent, m_swapchain.get());
 		RecreateCommandBuffers();
 	}
 
 	void Graphics::RecreateCommandBuffers()
 	{
-		for (std::size_t i = 0; i < flightFences.size(); i++)
+		for (std::size_t i = 0; i < m_flightFences.size(); i++)
 		{
-			vkDestroyFence(*logicalDevice, flightFences[i], nullptr);
-			vkDestroySemaphore(*logicalDevice, renderCompletes[i], nullptr);
-			vkDestroySemaphore(*logicalDevice, presentCompletes[i], nullptr);
+			vkDestroyFence(*m_logicalDevice, m_flightFences[i], nullptr);
+			vkDestroySemaphore(*m_logicalDevice, m_renderCompletes[i], nullptr);
+			vkDestroySemaphore(*m_logicalDevice, m_presentCompletes[i], nullptr);
 		}
 
-		presentCompletes.resize(swapchain->GetImageCount());
-		renderCompletes.resize(swapchain->GetImageCount());
-		flightFences.resize(swapchain->GetImageCount());
-		commandBuffers.resize(swapchain->GetImageCount());
+		m_presentCompletes.resize(m_swapchain->GetImageCount());
+		m_renderCompletes.resize(m_swapchain->GetImageCount());
+		m_flightFences.resize(m_swapchain->GetImageCount());
+		m_commandBuffers.resize(m_swapchain->GetImageCount());
 
 		VkSemaphoreCreateInfo semaphoreCreateInfo = {};
 		semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -217,57 +150,34 @@ namespace Avarice
 		fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 		fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-		for (std::size_t i = 0; i < flightFences.size(); i++)
+		for (std::size_t i = 0; i < m_flightFences.size(); i++)
 		{
-			CheckVk(vkCreateSemaphore(*logicalDevice, &semaphoreCreateInfo, nullptr, &presentCompletes[i]));
+			CheckVk(vkCreateSemaphore(*m_logicalDevice, &semaphoreCreateInfo, nullptr, &m_presentCompletes[i]));
 
-			CheckVk(vkCreateSemaphore(*logicalDevice, &semaphoreCreateInfo, nullptr, &renderCompletes[i]));
+			CheckVk(vkCreateSemaphore(*m_logicalDevice, &semaphoreCreateInfo, nullptr, &m_renderCompletes[i]));
 
-			CheckVk(vkCreateFence(*logicalDevice, &fenceCreateInfo, nullptr, &flightFences[i]));
+			CheckVk(vkCreateFence(*m_logicalDevice, &fenceCreateInfo, nullptr, &m_flightFences[i]));
 
-			commandBuffers[i] = std::make_unique<CommandBuffer>(false);
+			m_commandBuffers[i] = std::make_unique<CommandBuffer>(false);
 		}
 	}
 
-	void Graphics::RecreatePass(RenderStage &renderStage)
+	bool Graphics::StartRenderpass(RenderStage &_renderStage)
 	{
-		auto graphicsQueue = logicalDevice->GetGraphicsQueue();
-
-		VkExtent2D displayExtent = {Window::Get()->GetSize().x, Window::Get()->GetSize().y};
-
-		CheckVk(vkQueueWaitIdle(graphicsQueue));
-
-		if (renderStage.HasSwapchain() && (framebufferResized || !swapchain->IsSameExtent(displayExtent)))
-			RecreateSwapchain();
-
-		renderStage.Rebuild(*swapchain);
-		RecreateAttachmentsMap(); // TODO: Maybe not recreate on a single change.
-	}
-
-	void Graphics::RecreateAttachmentsMap()
-	{
-		attachments.clear();
-
-		for (const auto &renderStage : renderer->renderStages)
-			attachments.insert(renderStage->descriptors.begin(), renderStage->descriptors.end());
-	}
-
-	bool Graphics::StartRenderpass(RenderStage &renderStage)
-	{
-		if (renderStage.IsOutOfDate())
+		if (_renderStage.IsOutOfDate())
 		{
-			RecreatePass(renderStage);
+			RecreatePass(_renderStage);
 			return false;
 		}
 
-		auto &commandBuffer = commandBuffers[swapchain->GetActiveImageIndex()];
+		auto &commandBuffer = m_commandBuffers[m_swapchain->GetActiveImageIndex()];
 
 		if (!commandBuffer->IsRunning())
 			commandBuffer->Begin(VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT);
 
 		VkRect2D renderArea = {};
-		renderArea.offset = {renderStage.GetRenderArea().GetOffset().x, renderStage.GetRenderArea().GetOffset().y};
-		renderArea.extent = {renderStage.GetRenderArea().GetExtent().x, renderStage.GetRenderArea().GetExtent().y};
+		renderArea.offset = {_renderStage.GetRenderArea().GetOffset().x, _renderStage.GetRenderArea().GetOffset().y};
+		renderArea.extent = {_renderStage.GetRenderArea().GetExtent().x, _renderStage.GetRenderArea().GetExtent().y};
 
 		VkViewport viewport = {};
 		viewport.x = 0.0f;
@@ -283,12 +193,12 @@ namespace Avarice
 		scissor.extent = renderArea.extent;
 		vkCmdSetScissor(*commandBuffer, 0, 1, &scissor);
 
-		auto clearValues = renderStage.GetClearValues();
+		auto clearValues = _renderStage.GetClearValues();
 
 		VkRenderPassBeginInfo renderPassBeginInfo = {};
 		renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassBeginInfo.renderPass = *renderStage.GetRenderpass();
-		renderPassBeginInfo.framebuffer = renderStage.GetActiveFramebuffer(swapchain->GetActiveImageIndex());
+		renderPassBeginInfo.renderPass = *_renderStage.GetRenderpass();
+		renderPassBeginInfo.framebuffer = _renderStage.GetActiveFramebuffer(m_swapchain->GetActiveImageIndex());
 		renderPassBeginInfo.renderArea = renderArea;
 		renderPassBeginInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
 		renderPassBeginInfo.pClearValues = clearValues.data();
@@ -297,24 +207,24 @@ namespace Avarice
 		return true;
 	}
 
-	void Graphics::EndRenderpass(RenderStage &renderStage)
+	void Graphics::EndRenderpass(RenderStage &_renderStage)
 	{
-		auto presentQueue = logicalDevice->GetPresentQueue();
-		auto &commandBuffer = commandBuffers[swapchain->GetActiveImageIndex()];
+		auto presentQueue = m_logicalDevice->GetPresentQueue();
+		auto &commandBuffer = m_commandBuffers[m_swapchain->GetActiveImageIndex()];
 
 		vkCmdEndRenderPass(*commandBuffer);
 
-		if (!renderStage.HasSwapchain())
+		if (!_renderStage.HasSwapchain())
 			return;
 
 		commandBuffer->End();
-		commandBuffer->Submit(presentCompletes[currentFrame], renderCompletes[currentFrame], flightFences[currentFrame]);
+		commandBuffer->Submit(m_presentCompletes[m_currentFrame], m_renderCompletes[m_currentFrame], m_flightFences[m_currentFrame]);
 
-		auto presentResult = swapchain->QueuePresent(presentQueue, renderCompletes[currentFrame]);
+		auto presentResult = m_swapchain->QueuePresent(presentQueue, m_renderCompletes[m_currentFrame]);
 		if (presentResult == VK_ERROR_OUT_OF_DATE_KHR || presentResult == VK_SUBOPTIMAL_KHR)
-		{							   // || framebufferResized
-			framebufferResized = true; // false
-									   //RecreateSwapchain();
+		{								 // || framebufferResized
+			m_framebufferResized = true; // false
+										 //RecreateSwapchain();
 		}
 		else if (presentResult != VK_SUCCESS)
 		{
@@ -322,7 +232,7 @@ namespace Avarice
 			printf("Failed to present swap chain image!\n");
 		}
 
-		currentFrame = (currentFrame + 1) % swapchain->GetImageCount();
+		m_currentFrame = (m_currentFrame + 1) % m_swapchain->GetImageCount();
 	}
 
 	std::string Graphics::StringifyResultVk(VkResult result)
@@ -380,6 +290,26 @@ namespace Avarice
 		default:
 			return "Unknown Vulkan error";
 		}
+	}
+	void Graphics::ResetRenderStages()
+	{
+		RecreateSwapchain();
+
+		if (m_flightFences.size() != m_swapchain->GetImageCount())
+			RecreateCommandBuffers();
+
+		for (const auto &renderStage : m_renderManager->m_renderStages)
+			renderStage->Rebuild(*m_swapchain);
+
+		RecreateAttachmentsMap();
+	}
+
+	void Graphics::RecreateAttachmentsMap()
+	{
+		m_attachments.clear();
+
+		for (const auto &renderStage : m_renderManager->m_renderStages)
+			m_attachments.insert(renderStage->m_descriptors.begin(), renderStage->m_descriptors.end());
 	}
 
 }

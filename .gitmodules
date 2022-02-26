@@ -7,3 +7,7 @@
 [submodule "external/vk-bootstrap"]
 	path = external/vk-bootstrap
 	url = git@github.com:charles-lunarg/vk-bootstrap.git
+[submodule "external/imgui"]
+	path = external/imgui
+	url = https://github.com/ocornut/imgui.git
+

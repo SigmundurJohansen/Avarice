@@ -1,6 +1,5 @@
-#include "buffer.h"
+#include "../buffers/buffer.h"
 #include <cstring>
-#include "rendering/graphics.h"
 #include <array>
 
 namespace Avarice

@@ -1,5 +1,4 @@
 #include "model.h"
-
 #include <cassert>
 
 namespace Avarice{
@@ -29,12 +28,4 @@ void Model::bind(VkCommandBuffer commandBuffer) {
     vkCmdBindIndexBuffer(commandBuffer, indexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
   }
 }
-/*
-std::unique_ptr<Model> Model::createModelFromFile( const std::string &filepath) 
-{
-  Builder builder{};
-  builder.loadModel(ENGINE_DIR + filepath);
-  return std::make_unique<Model>(builder);
-}
-*/
 }

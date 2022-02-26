@@ -1,6 +1,6 @@
-#include "devices/instance.h"
+#include "instance.h"
 #include <iomanip>
-#include "rendering/graphics.h"
+#include "../graphics.h"
 
 namespace Avarice
 {

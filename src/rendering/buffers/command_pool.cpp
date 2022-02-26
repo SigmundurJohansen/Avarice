@@ -1,5 +1,4 @@
-#include "command_pool.h"
-#include "rendering/graphics.h"
+#include "../buffers/command_pool.h"
 
 namespace Avarice
 {

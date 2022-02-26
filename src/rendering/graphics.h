@@ -1,13 +1,18 @@
 #pragma once
-#include "engine.h"
 #include "buffers/command_buffer.h"
 #include "buffers/command_pool.h"
 #include "devices/instance.h"
 #include "devices/logical_device.h"
 #include "devices/physical_device.h"
 #include "devices/surface.h"
+#include "renderpass/swapchain.h"
+#include "renderpass/renderpass.h"
 #include "vulkan_renderer.h"
+#include "descriptors/descriptor.h"
+#include "renderstage.h"
+#include "rendermanager.h"
 #include <map>
+#include <string>
 
 namespace Avarice
 {
@@ -17,15 +22,14 @@ namespace Avarice
         Graphics();
         ~Graphics();
         static Graphics *Get() { return m_Graphics; }
-        static std::string StringifyResultVk(VkResult result);
-        static void CheckVk(VkResult result);
-        void CaptureScreenshot(const std::filesystem::path &filename) const;
-        const std::shared_ptr<CommandPool> &GetCommandPool(const std::thread::id &threadId = std::this_thread::get_id());
-        Renderer *GetRenderer() const { return renderer.get(); }
-        void SetRenderer(std::unique_ptr<Renderer> &&renderer) { this->renderer = std::move(renderer); }
-        const PhysicalDevice *GetPhysicalDevice() const { return physicalDevice.get(); }
-        const Surface *GetSurface() const { return surface.get(); }
-        const LogicalDevice *GetLogicalDevice() const { return logicalDevice.get(); }
+        static std::string StringifyResultVk(VkResult _result);
+        static void CheckVk(VkResult _result);
+        const std::shared_ptr<CommandPool> &GetCommandPool(const std::thread::id &_threadId = std::this_thread::get_id());
+        RenderManager *GetRenderManager() const { return m_renderManager.get(); }
+        void SetRenderer(std::unique_ptr<RenderManager> &&_renderManager) { this->m_renderManager = std::move(_renderManager); }
+        const PhysicalDevice *GetPhysicalDevice() const { return m_physicalDevice.get(); }
+        const Surface *GetSurface() const { return m_surface.get(); }
+        const LogicalDevice *GetLogicalDevice() const { return m_logicalDevice.get(); }
 
         void Update();
 
@@ -35,28 +39,28 @@ namespace Avarice
         void RecreateSwapchain();
         void RecreateCommandBuffers();
         void RecreateAttachmentsMap();
-        //void RecreatePass(RenderStage &renderStage);
-        //bool StartRenderpass(RenderStage &renderStage);
-        //void EndRenderpass(RenderStage &renderStage);
-        //std::map<std::string, const Descriptor *> attachments;
-        std::unique_ptr<Renderer> renderer;
-        std::unique_ptr<Swapchain> swapchain;
-        
-        std::vector<VkSemaphore> presentCompletes;
-        std::vector<VkSemaphore> renderCompletes;
-        std::vector<VkFence> flightFences;
-        std::size_t currentFrame = 0;
-        bool framebufferResized = false;
+        void RecreatePass(RenderStage &_renderStage);
+        bool StartRenderpass(RenderStage &_renderStage);
+        void EndRenderpass(RenderStage &_renderStage);
+        std::map<std::string, const Descriptor *> m_attachments;
+        std::unique_ptr<RenderManager> m_renderManager;
+        std::unique_ptr<Swapchain> m_swapchain;
 
-        std::map<std::thread::id, std::shared_ptr<CommandPool>> commandPools;
-        std::vector<std::unique_ptr<CommandBuffer>> commandBuffers;
+        std::vector<VkSemaphore> m_presentCompletes;
+        std::vector<VkSemaphore> m_renderCompletes;
+        std::vector<VkFence> m_flightFences;
+        std::size_t m_currentFrame = 0;
+        bool m_framebufferResized = false;
 
-        VkPipelineCache pipelineCache = VK_NULL_HANDLE;
-        ElapsedTime elapsedPurge;
-        std::unique_ptr<Instance> instance;
-        std::unique_ptr<PhysicalDevice> physicalDevice;
-        std::unique_ptr<Surface> surface;
-        std::unique_ptr<LogicalDevice> logicalDevice;
+        std::map<std::thread::id, std::shared_ptr<CommandPool>> m_commandPools;
+        std::vector<std::unique_ptr<CommandBuffer>> m_commandBuffers;
+
+        VkPipelineCache m_pipelineCache = VK_NULL_HANDLE;
+        ElapsedTime m_elapsedPurge;
+        std::unique_ptr<Instance> m_instance;
+        std::unique_ptr<PhysicalDevice> m_physicalDevice;
+        std::unique_ptr<Surface> m_surface;
+        std::unique_ptr<LogicalDevice> m_logicalDevice;
 
     protected:
         inline static Graphics *m_Graphics = nullptr;

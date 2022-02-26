@@ -5,7 +5,6 @@
 #include "platforms/custom_window.h"
 #include "service_locator.h"
 
-
 void Engine::Init()
 {
 }

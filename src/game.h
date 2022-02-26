@@ -19,6 +19,7 @@ class Game
     bool m_Running;
 
     void Initialize();
+    void GUI();
     void Shutdown();
 };
 
