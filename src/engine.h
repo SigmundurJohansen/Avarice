@@ -1,5 +1,4 @@
 #pragma once
-#include <vulkan/vulkan.h>
 #include <iostream>
 #include <cmath>
 #include <bitset>

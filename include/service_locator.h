@@ -3,14 +3,12 @@
 #include "window.h"
 #include "../rendering/renderer.h"
 #include "../inputs/input_manager.h"
-#include "../src/rendering/graphics.h"
 
 
 namespace Avarice{
 class ServiceLocator 
 {
     public:
-    static inline const std::unique_ptr<Graphics> &GetGraphics() { return m_Graphics; }
     static inline const std::unique_ptr<Window> &GetWindow() { return m_Window; }
     static inline const std::unique_ptr<Renderer> &GetRenderer() {return m_Renderer;}
     static inline InputManager* GetInputManager() { return m_inputManager.get(); }
@@ -34,12 +32,6 @@ class ServiceLocator
         m_inputManager = std::unique_ptr<InputManager>(_inputManager);
     }
 
-    static inline void Provide(Graphics* _graphics)
-    {
-        if (m_Graphics != nullptr) return;
-        m_Graphics = std::unique_ptr<Graphics>(_graphics);
-    }
-
     static inline void ShutdownServices()
     {
         shutdownInputManager();
@@ -48,7 +40,6 @@ class ServiceLocator
     }
 
     private:
-    static inline std::unique_ptr<Graphics> m_Graphics = nullptr;
     static inline std::unique_ptr<Window> m_Window = nullptr;
     static inline std::unique_ptr<Renderer> m_Renderer = nullptr;
     static inline std::unique_ptr<InputManager> m_inputManager = nullptr;

@@ -2,7 +2,6 @@
 #include <service_locator.h>
 #include "rendering/vulkan_renderer.h"
 #include "../platforms/custom_window.h"
-#include "rendering/graphics.h"
 
 namespace Avarice
 {
@@ -48,7 +47,7 @@ namespace Avarice
             // update pyhsics
 
             // draw
-            ServiceLocator::GetGraphics()->Update();
+            ServiceLocator::GetRenderer()->RenderFrame();
             
         }
     }
@@ -68,7 +67,7 @@ namespace Avarice
         // initialize renderer
         RendererSettings settings{
             .ApplicationName = m_Title};
-        ServiceLocator::Provide(new Graphics());
+        ServiceLocator::Provide(new VulkanRenderer(),settings);
     }
 
     void Game::Shutdown()

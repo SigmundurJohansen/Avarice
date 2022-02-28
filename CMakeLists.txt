@@ -7,29 +7,17 @@ set(CMAKE_CXX_STANDARD 20)
 add_subdirectory(external/glm)
 add_subdirectory(external/vk-bootstrap)
 add_subdirectory(external/glfw)
-add_subdirectory(external/imgui)
-
-
-# Dear ImGui
-set(IMGUI_DIR external/imgui)
-include_directories(${IMGUI_DIR} ${IMGUI_DIR}/backends ..)
 
 #library find functions
 find_package(Vulkan REQUIRED)
 
-file(GLOB SOURCES "src/*.cpp", "src/*/*.cpp",
+file(GLOB SOURCES "src/*.cpp", "src/*/*.cpp", "src/rendering/*/*.cpp",
                     "*.cpp", "*/*.cpp", "*/*/*.cpp")
 
 add_library(${PROJECT_NAME} ${SOURCES} 
-            src/
             src/rendering/
-            src/rendering/buffers/
-            src/rendering/pipelines/
-            src/rendering/descriptors/
-            src/rendering/renderpass/
-            src/rendering/devices/
             src/utils/
-            external/imgui
+            src/
             external/glm/glm/glm.hpp)
 
 target_include_directories(${PROJECT_NAME} 
@@ -38,8 +26,8 @@ target_include_directories(${PROJECT_NAME}
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         ${CMAKE_DL_LIBS}
         ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/rendering
         ${Vulkan_INCLUDE_DIRS}
-        imgui
     PRIVATE
         glfw 
         vk-bootstrap 
@@ -50,7 +38,6 @@ target_link_libraries(${PROJECT_NAME}
     PUBLIC 
         ${Vulkan_LIBRARIES} 
         glfw
-        imgui
     PRIVATE 
         vk-bootstrap 
         glm 
