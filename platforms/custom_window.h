@@ -3,13 +3,14 @@
 
 #include "window.h"
 #include <GLFW/glfw3.h>
+#include <inputs/multiplatform_input.h>
 
 namespace Avarice
 {
     class CustomWindow : public Window
     {
     public:
-        CustomWindow();
+        CustomWindow() = default;
         void OpenWindow(WindowData _data) override;
         bool Update() override;
 
@@ -18,6 +19,8 @@ namespace Avarice
         void SetupImgui();
 
     private:
+        std::unordered_map<InputKey, InputDeviceState> getGamepadState(int joystickId);
+        MultiplatformInput _input {};
         GLFWwindow *m_Window;
     };
 }
