@@ -15,6 +15,7 @@ file(GLOB SOURCES "src/*.cpp", "src/*/*.cpp", "src/rendering/*/*.cpp",
                     "*.cpp", "*/*.cpp", "*/*/*.cpp")
 
 add_library(${PROJECT_NAME} ${SOURCES} 
+            rendering/
             src/rendering/
             src/utils/
             src/

@@ -16,7 +16,10 @@ namespace Avarice
     {
         Shutdown();
     }
-
+void printMe()
+{
+    std::cout << "oi";
+}
     void Game::Run()
     {
         /*
@@ -26,7 +29,7 @@ namespace Avarice
         ImGui_ImplVulkanH_Window *wd = &g_MainWindowData;
         SetupVulkanWindow(wd, surface, w, h);
         */
-        
+        ServiceLocator::GetInputManager()->MapInputToAction("e", printMe())
         //run the game
         while (m_Running)
         {

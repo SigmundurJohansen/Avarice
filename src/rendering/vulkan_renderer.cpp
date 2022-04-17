@@ -5,22 +5,30 @@
 #include "vulkan_types.h"
 #include "vulkan_utilities.h"
 #include "vulkan_pipeline_builder.h"
+#include "vulkan_shader.h"
 #include <iostream>
 #include <sys/stat.h>
 
 namespace Avarice
 {
-    
-    VkResult err;
-static void check_vk_result(VkResult err)
-{
-    if (err == 0)
-        return;
-    fprintf(stderr, "[vulkan] Error: VkResult = %d\n", err);
-    if (err < 0)
-        abort();
-}
 
+    VkResult err;
+    static void check_vk_result(VkResult err)
+    {
+        if (err == 0)
+            return;
+        fprintf(stderr, "[vulkan] Error: VkResult = %d\n", err);
+        if (err < 0)
+            abort();
+    }
+
+    const std::vector<const char *> validationLayers = {
+        "VK_LAYER_KHRONOS_validation"};
+#ifdef NDEBUG
+    const bool enableValidationLayers = false;
+#else
+    const bool enableValidationLayers = true;
+#endif
 
     void VulkanRenderer::Init(RendererSettings _settings)
     {
@@ -38,8 +46,13 @@ static void check_vk_result(VkResult err)
     void VulkanRenderer::Shutdown()
     {
         vkDeviceWaitIdle(m_device);
-        vkDestroyPipeline(m_device, m_trianglePipeline, nullptr);
-        vkDestroyPipelineLayout(m_device, m_trianglePipelineLayout, nullptr);
+
+        if(m_triangleShader)
+        {
+            m_triangleShader.reset();
+            m_triangleShader = nullptr;
+        }
+
         vkDestroyFence(m_device, m_renderFence, nullptr);
         vkDestroySemaphore(m_device, m_presentSemaphore, nullptr);
         vkDestroySemaphore(m_device, m_renderSemaphore, nullptr);
@@ -98,9 +111,13 @@ static void check_vk_result(VkResult err)
         vkCmdBeginRenderPass(cmd, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
         // draw calls
-        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_trianglePipeline);
+
+        if(m_triangleShader)
+        {
+            m_triangleShader->Bind();
+        }
+
         vkCmdDraw(cmd, 3, 1, 0, 0);
-        
 
         vkCmdEndRenderPass(cmd);           // end render pass
         VK_CHECK(vkEndCommandBuffer(cmd)); // end draw
@@ -130,6 +147,11 @@ static void check_vk_result(VkResult err)
         presentInfoKhr.pImageIndices = &swapchainIndex;
         VK_CHECK(vkQueuePresentKHR(m_graphicsQueue, &presentInfoKhr));
         m_frameNumber++;
+    }
+
+    std::shared_ptr<Shader> VulkanRenderer::CreateShader()
+    {
+        return std::make_shared<VulkanShader>(this);
     }
 
     void VulkanRenderer::InitCore()
@@ -166,6 +188,56 @@ static void check_vk_result(VkResult err)
 
         m_graphicsQueue = vkbDevice.get_queue(vkb::QueueType::graphics).value();
         m_graphicsQueueFamily = vkbDevice.get_queue_index(vkb::QueueType::graphics).value();
+        ///////////////////////////////
+        ////////////TEST///////////////
+        ///////////////////////////////
+        if (isDeviceSuitable(m_physicalDevice))
+        {
+            std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+            std::set<uint32_t> uniqueQueueFamilies = {m_indices.m_graphicsFamily.value(), m_indices.m_presentFamily.value()};
+
+            float queuePriority = 1.0f;
+            for (uint32_t queueFamily : uniqueQueueFamilies)
+            {
+                VkDeviceQueueCreateInfo queueCreateInfo{};
+                queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+                queueCreateInfo.queueFamilyIndex = queueFamily;
+                queueCreateInfo.queueCount = 1;
+                queueCreateInfo.pQueuePriorities = &queuePriority;
+                queueCreateInfos.push_back(queueCreateInfo);
+            }
+
+            VkPhysicalDeviceFeatures deviceFeatures{};
+
+            VkDeviceCreateInfo createInfo{};
+            createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+
+            createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+            createInfo.pQueueCreateInfos = queueCreateInfos.data();
+
+            createInfo.pEnabledFeatures = &deviceFeatures;
+
+            createInfo.enabledExtensionCount = static_cast<uint32_t>(m_deviceExtensions.size());
+            createInfo.ppEnabledExtensionNames = m_deviceExtensions.data();
+
+            if (enableValidationLayers)
+            {
+                createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+                createInfo.ppEnabledLayerNames = validationLayers.data();
+            }
+            else
+            {
+                createInfo.enabledLayerCount = 0;
+            }
+
+            if (vkCreateDevice(m_physicalDevice, &createInfo, nullptr, &m_device) != VK_SUCCESS)
+            {
+                throw std::runtime_error("failed to create logical device!");
+            }
+
+            vkGetDeviceQueue(m_device, m_indices.m_graphicsFamily.value(), 0, &m_graphicsQueue);
+            vkGetDeviceQueue(m_device, m_indices.m_presentFamily.value(), 0, &m_presentQueue);
+        }
     }
 
     void VulkanRenderer::CreateSwapchain()
@@ -258,6 +330,8 @@ static void check_vk_result(VkResult err)
 
     void VulkanRenderer::CreatePipelines()
     {
+        m_triangleShader = CreateShader(); 
+        m_triangleShader->Load("../external/engine/shaders/triangle.vert.spv", "../external/engine/shaders/triangle.frag.spv");
         // debug
         /*
         struct stat info1;
@@ -272,64 +346,9 @@ static void check_vk_result(VkResult err)
         outfile << "my text here!" << std::endl;
         outfile.close();
         */
-        VkShaderModule triangleFragShader;
-        if (!VulkanUtilities::LoadShaderModule("../external/engine/shaders/triangle.frag.spv", m_device, triangleFragShader))
-        {
-            std::cout << "Failed to load triangle fragment shader module\n";
-        }
-        else
-        {
-            std::cout << "Successfully loaded triangle fragment shader module\n";
-        }
-
-        VkShaderModule triangleVertShader;
-        if (!VulkanUtilities::LoadShaderModule("../external/engine/shaders/triangle.vert.spv", m_device, triangleVertShader))
-        {
-            std::cout << "Failed to load triangle vertex shader module\n";
-        }
-        else
-        {
-            std::cout << "Successfully loaded triangle vertex shader module\n";
-        }
-
-        auto pipelineLayoutInfo = VulkanInitializers::PipelineLayoutCreateInfo();
-        VK_CHECK(vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_trianglePipelineLayout));
-
-        //TEMPORARY PIPELINE BUILDING
-
-        VulkanPipelineBuilder pipelineBuilder;
-        pipelineBuilder.m_shaderStages.push_back(
-            VulkanInitializers::PipelineShaderStageCreateInfo(VK_SHADER_STAGE_VERTEX_BIT, triangleVertShader));
-        pipelineBuilder.m_shaderStages.push_back(
-            VulkanInitializers::PipelineShaderStageCreateInfo(VK_SHADER_STAGE_FRAGMENT_BIT, triangleFragShader));
-
-        pipelineBuilder.m_vertexInputInfo = VulkanInitializers::PipelineVertexInputStateCreateInfo();
-        pipelineBuilder.m_inputAssembly = VulkanInitializers::PipelineInputAssemblyStateCreateInfo(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-
-        // build the viewport
-        pipelineBuilder.m_viewport = {
-            .x = 0.f,
-            .y = 0.f,
-            .width = static_cast<float>(m_windowExtent.width),
-            .height = static_cast<float>(m_windowExtent.height),
-            .minDepth = 0.f,
-            .maxDepth = 1.f};
-
-        pipelineBuilder.m_scissor = {
-            .offset = {0, 0},
-            .extent = m_windowExtent};
-
-        pipelineBuilder.m_rasterizer = VulkanInitializers::PipelineRasterizationStateCreateInfo(VK_POLYGON_MODE_FILL);
-        pipelineBuilder.m_multisampling = VulkanInitializers::PipelineMultisampleStateCreateInfo();
-        pipelineBuilder.m_colorBlendAttachment = VulkanInitializers::PipelineColorBlendAttachmentState();
-        pipelineBuilder.m_pipelineLayout = m_trianglePipelineLayout;
-
-        m_trianglePipeline = pipelineBuilder.BuildPipeline(m_device, m_renderPass);
-
-        vkDestroyShaderModule(m_device, triangleFragShader, nullptr);
-        vkDestroyShaderModule(m_device, triangleVertShader, nullptr);
+        
     }
-/*
+    /*
     void VulkanRenderer::InitImgui()
     {
         VkDescriptorPoolSize pool_sizes[] =
@@ -397,4 +416,53 @@ static void check_vk_result(VkResult err)
     }
 */
 
+    bool VulkanRenderer::isDeviceSuitable(VkPhysicalDevice _device)
+    {
+        QueueFamilyIndices indices = findQueueFamilies(_device);
+
+        bool extensionsSupported = checkDeviceExtensionSupport(_device);
+
+        return indices.isComplete() && extensionsSupported;
+    }
+
+    bool VulkanRenderer::checkDeviceExtensionSupport(VkPhysicalDevice _device)
+    {
+        return true;
+    }
+
+    QueueFamilyIndices VulkanRenderer::findQueueFamilies(VkPhysicalDevice _device)
+    {
+
+        uint32_t queueFamilyCount = 0;
+        vkGetPhysicalDeviceQueueFamilyProperties(_device, &queueFamilyCount, nullptr);
+
+        std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+        vkGetPhysicalDeviceQueueFamilyProperties(_device, &queueFamilyCount, queueFamilies.data());
+
+        int i = 0;
+        for (const auto &queueFamily : queueFamilies)
+        {
+            if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+            {
+                m_indices.m_graphicsFamily = i;
+            }
+
+            VkBool32 presentSupport = false;
+            vkGetPhysicalDeviceSurfaceSupportKHR(_device, i, m_surface, &presentSupport);
+
+            if (presentSupport)
+            {
+                m_indices.m_presentFamily = i;
+            }
+
+            if (m_indices.isComplete())
+            {
+                break;
+            }
+
+            i++;
+        }
+
+        return m_indices;
+    }
 }

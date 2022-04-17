@@ -1,13 +1,14 @@
 #include "vulkan_utilities.h"
 #include <fstream>
 #include <vector>
+#include "../platforms/filesystem.h"
 
 namespace Avarice
 {
     
-    bool VulkanUtilities::LoadShaderModule(const std::string &_filepath, VkDevice _device, VkShaderModule &_outShaderModule)
+    bool VulkanUtilities::LoadShaderModule(const std::string &_shaderName, VkDevice _device, VkShaderModule &_outShaderModule)
     {
-        std::ifstream file(_filepath.c_str(), std::ios::ate | std::ios::binary);
+        std::ifstream file(FileSystem::GetShaderPath() / _shaderName, std::ios::ate | std::ios::binary);
 
         if(!file.is_open())
         {
