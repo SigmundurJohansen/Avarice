@@ -7,6 +7,11 @@ set(CMAKE_CXX_STANDARD 20)
 add_subdirectory(external/glm)
 add_subdirectory(external/vk-bootstrap)
 add_subdirectory(external/glfw)
+add_subdirectory(external/SDL)
+
+# SDL
+set( SDL_STATIC ON CACHE BOOL "" FORCE )
+set( SDL_SHARED OFF CACHE BOOL "" FORCE )
 
 #library find functions
 find_package(Vulkan REQUIRED)
@@ -37,6 +42,8 @@ target_include_directories(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME} 
     PUBLIC 
+        SDL2main
+        SDL2-static
         ${Vulkan_LIBRARIES} 
         glfw
     PRIVATE 
