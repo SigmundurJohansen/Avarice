@@ -62,8 +62,7 @@ namespace Avarice
                                                           << "\n";
                                             }
                                         }
-                                    }
-                                });
+                                    } });
 
         glfwSetKeyCallback(m_Window, [](GLFWwindow *window, int key, int scancode, int action, int mods)
                            {
@@ -86,8 +85,7 @@ namespace Avarice
                                    }
 
                                    input->UpdateKeyboardState(key, value);
-                               }
-                           });
+                               } });
 
         glfwSetMouseButtonCallback(m_Window, [](GLFWwindow *window, int button, int action, int mods)
                                    {
@@ -97,8 +95,7 @@ namespace Avarice
                                        if (input)
                                        {
                                            input->UpdateMouseState(button, action == GLFW_PRESS ? 1.f : 0.f);
-                                       }
-                                   });
+                                       } });
 
         // Register input devices
         auto *inputManager = ServiceLocator::GetInputManager();
@@ -129,27 +126,27 @@ namespace Avarice
         return {width, height};
     }
 
-    void CustomWindow::RequestDrawSurface(std::unordered_map<SurfaceArgs, std::any> _args)
+    void CustomWindow::RequestDrawSurface(std::unordered_map<SurfaceArgs, int *> args)
     {
         try
         {
-            auto vkInstance = std::any_cast<VkInstance>(_args[SurfaceArgs::INSTANCE]);
-            //auto *allocationCallbacks = _args[SurfaceArgs::ALLOCATORS].has_value() ? std::any_cast<VkAllocationCallbacks *>(_args[SurfaceArgs::ALLOCATORS]) : nullptr;
-            auto *outSurface = std::any_cast<VkSurfaceKHR *>(_args[SurfaceArgs::OUT_SURFACE]);
+            auto vkInstance = reinterpret_cast<VkInstance>(args[SurfaceArgs::INSTANCE]);
+            auto *allocationCallbacks = args[SurfaceArgs::ALLOCATORS] ? reinterpret_cast<VkAllocationCallbacks *>(args[SurfaceArgs::ALLOCATORS]) : nullptr;
+            auto *outSurface = reinterpret_cast<VkSurfaceKHR *>(args[SurfaceArgs::OUT_SURFACE]);
 
             if (vkInstance == VK_NULL_HANDLE)
             {
-                throw std::runtime_error("Must provide both an instance!");
+                throw std::runtime_error("Must provide an instance!");
             }
 
-            if (glfwCreateWindowSurface(vkInstance, m_Window, nullptr, outSurface) != VK_SUCCESS)
+            if (glfwCreateWindowSurface(vkInstance, m_Window, allocationCallbacks, outSurface) != VK_SUCCESS)
             {
                 throw std::runtime_error("Failed to create window surface!");
             }
         }
-        catch (std::bad_any_cast &_error)
+        catch (std::bad_any_cast &e)
         {
-            std::cout << "Failed to cast window surface arguments: " << _error.what() << std::endl;
+            std::cout << "Failed to cast window surface arguments: " << e.what() << std::endl;
         }
     }
 

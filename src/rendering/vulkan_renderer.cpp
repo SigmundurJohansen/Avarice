@@ -168,10 +168,10 @@ namespace Avarice
         m_debugMessenger = vkb_inst.debug_messenger;
 
         // request vulkan surface
-        std::unordered_map<SurfaceArgs, std::any> surfaceArgs{
-            {SurfaceArgs::INSTANCE, m_instance},
-            {SurfaceArgs::ALLOCATORS, nullptr},
-            {SurfaceArgs::OUT_SURFACE, &m_surface}};
+        std::unordered_map<SurfaceArgs, int*> surfaceArgs{
+                {SurfaceArgs::INSTANCE,    (int*)m_instance},
+                {SurfaceArgs::OUT_SURFACE, (int*)&m_surface}
+        };
 
         ServiceLocator::GetWindow()->RequestDrawSurface(surfaceArgs);
 
@@ -331,7 +331,7 @@ namespace Avarice
     void VulkanRenderer::CreatePipelines()
     {
         m_triangleShader = CreateShader(); 
-        m_triangleShader->Load("../external/engine/shaders/triangle.vert.spv", "../external/engine/shaders/triangle.frag.spv");
+        m_triangleShader->Load("../include/engine/shaders/triangle.vert.spv", "../include/engine/shaders/triangle.frag.spv");
         // debug
         /*
         struct stat info1;

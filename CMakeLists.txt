@@ -21,10 +21,13 @@ file(GLOB SOURCES "src/*.cpp", "src/*/*.cpp", "src/rendering/*/*.cpp",
 
 add_library(${PROJECT_NAME} ${SOURCES} 
             rendering/
+            platform/
             src/rendering/
+            src/rendering/SDL/
             src/utils/
             src/
-            external/glm/glm/glm.hpp)
+            #external/glm/glm/glm.hpp
+            )
 
 target_include_directories(${PROJECT_NAME} 
     PUBLIC 

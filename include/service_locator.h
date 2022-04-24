@@ -1,6 +1,6 @@
 #pragma once
 #include <memory>
-#include "window.h"
+#include "../platform/window.h"
 #include "../rendering/renderer.h"
 #include "../inputs/input_manager.h"
 

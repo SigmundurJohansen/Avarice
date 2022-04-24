@@ -1,7 +1,8 @@
 #include "game.h"
 #include <service_locator.h>
 #include "rendering/vulkan_renderer.h"
-#include "../platforms/custom_window.h"
+#include "platform/custom_window.h"
+#include "platform/sdl_window.h"
 
 namespace Avarice
 {
@@ -26,8 +27,8 @@ namespace Avarice
         ImGui_ImplVulkanH_Window *wd = &g_MainWindowData;
         SetupVulkanWindow(wd, surface, w, h);
         */
-        
-        //run the game
+
+        // run the game
         while (m_Running)
         {
             if (ServiceLocator::GetWindow()->Update())
@@ -48,7 +49,6 @@ namespace Avarice
 
             // draw
             ServiceLocator::GetRenderer()->RenderFrame();
-            
         }
     }
 
@@ -57,7 +57,8 @@ namespace Avarice
         // provide input manager
         ServiceLocator::Provide(new InputManager());
         // provide window
-        ServiceLocator::Provide(new CustomWindow());
+        // ServiceLocator::Provide(new CustomWindow());
+        ServiceLocator::Provide(new SDLWindow());
 
         // open window
         ServiceLocator::GetWindow()->OpenWindow({.title = m_Title, .width = 800, .height = 600});
@@ -67,7 +68,7 @@ namespace Avarice
         // initialize renderer
         RendererSettings settings{
             .ApplicationName = m_Title};
-        ServiceLocator::Provide(new VulkanRenderer(),settings);
+        ServiceLocator::Provide(new VulkanRenderer(), settings);
     }
 
     void Game::Shutdown()

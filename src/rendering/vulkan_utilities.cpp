@@ -1,7 +1,7 @@
 #include "vulkan_utilities.h"
 #include <fstream>
 #include <vector>
-#include "../platforms/filesystem.h"
+#include "../platform/filesystem.h"
 
 namespace Avarice
 {
