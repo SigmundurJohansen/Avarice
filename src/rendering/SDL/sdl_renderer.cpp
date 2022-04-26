@@ -4,19 +4,10 @@
 
 namespace Avarice
 {
-    /*
     void SDL2_Renderer::Init(RendererSettings _settings)
     {
-        if (SDL_Init(SDL_INIT_VIDEO) < 0)
-            printf("Unable to Init SDL: %s", SDL_GetError());
-
         if (!SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1"))
             printf("Unable to Init hinting: %s", SDL_GetError());
-
-        if ((m_window = SDL_CreateWindow("My SDL Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, m_windowWidth, m_windowHeight, SDL_WINDOW_SHOWN)) == NULL)
-            printf("Unable to create SDL Window: %s", SDL_GetError());
-
-        m_surface = SDL_GetWindowSurface(m_window);
 
         if ((m_renderer = SDL_CreateRenderer(m_window, -1, SDL_RENDERER_ACCELERATED)) == NULL)
             printf("Unable to create renderer");
@@ -47,5 +38,4 @@ namespace Avarice
         // do something
         SDL_RenderPresent(m_renderer);
     }
-    */
 }
