@@ -18,6 +18,7 @@ namespace Avarice
             if (m_Window != nullptr)
                 return;
             m_Window = std::unique_ptr<Window>(window);
+            int oi = 0;
         }
 
         static inline void Provide(Renderer *_renderer, RendererSettings _rendererSettings)
@@ -38,7 +39,7 @@ namespace Avarice
 
         static inline void ShutdownServices()
         {
-            shutdownInputManager();
+            ShutdownInputManager();
             ShutdownRenderer();
             ShutdownWindow();
         }
@@ -62,7 +63,7 @@ namespace Avarice
             m_Renderer = nullptr;
         }
 
-        static inline void shutdownInputManager()
+        static inline void ShutdownInputManager()
         {
             if (!m_InputManager)
                 return;

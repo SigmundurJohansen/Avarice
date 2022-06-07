@@ -1,6 +1,6 @@
 #pragma once
 #include "include/service_locator.h"
-#include "game.h"
+#include "core/game.h"
 
 
 int main(int argc, char **argv)
@@ -10,4 +10,6 @@ int main(int argc, char **argv)
     theGame->Run();
 
     delete theGame;
+
+    return 0;
 }

@@ -125,16 +125,16 @@ namespace Avarice {
     }
 
     void InputManager::RegisterDevice(const InputDevice& device) {
-        std::cout << "Device registered of type: " << static_cast<int>(device.Type) << std::endl;
+        std::cout << "Device registered of type: " << static_cast<int>(device.Type) << "\n";
         _devices.emplace_back(device);
-        std::cout << "Device #: " << _devices.size() << std::endl;
+        std::cout << "Device #: " << _devices.size() << "\n";
     }
 
     void InputManager::RemoveDevice(InputDeviceType type, int inputIndex) {
         erase_if(_devices, [type, inputIndex](const InputDevice& device) {
             return device.Type == type && device.Index == inputIndex;
         });
-        std::cout << "Device unregistered of type: " << static_cast<int>(type) << std::endl;
-        std::cout << "Device #: " << _devices.size() << std::endl;
+        std::cout << "Device unregistered of type: " << static_cast<int>(type) << "\n";
+        std::cout << "Device #: " << _devices.size() << "\n";
     }
 }

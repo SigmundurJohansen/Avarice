@@ -8,7 +8,7 @@ namespace Avarice
     class SDLWindow : public Window
     {
     public:
-        SDLWindow() = default;
+        SDLWindow()= default;
         void OpenWindow(WindowData data) override;
         bool Update() override;
 
@@ -20,7 +20,7 @@ namespace Avarice
         }
 
     private:
-        SDL_Window *_window = nullptr;
+        SDL_Window *m_window = nullptr;
         std::function<void()> _windowResizedCallback;
     };
 }

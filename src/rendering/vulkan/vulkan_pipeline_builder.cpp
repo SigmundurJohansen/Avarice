@@ -31,6 +31,7 @@ namespace Avarice
         pipelineCreateInfo.renderPass = _pass;
         pipelineCreateInfo.subpass = 0;
         pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
+        pipelineCreateInfo.pDepthStencilState = &m_depthStencil;
 
         VkPipeline newPipeline;
 

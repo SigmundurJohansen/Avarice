@@ -146,7 +146,7 @@ namespace Avarice
         }
         catch (std::bad_any_cast &e)
         {
-            std::cout << "Failed to cast window surface arguments: " << e.what() << std::endl;
+            std::cout << "Failed to cast window surface arguments: " << e.what() << "\n";
         }
     }
 

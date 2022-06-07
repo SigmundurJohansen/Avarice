@@ -15,6 +15,7 @@ namespace Avarice {
         VkPipelineColorBlendAttachmentState m_colorBlendAttachment;
         VkPipelineMultisampleStateCreateInfo m_multisampling;
         VkPipelineLayout m_pipelineLayout;
+        VkPipelineDepthStencilStateCreateInfo m_depthStencil;
 
         VkPipeline BuildPipeline(VkDevice _device, VkRenderPass _pass);
     };
