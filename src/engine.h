@@ -8,9 +8,7 @@
 #include "../core/game.h"
 #include <service_locator.h>
 #include "rendering/vulkan/vulkan_renderer.h"
-#include "rendering/SDL/sdl_renderer.h"
 #include "platform/custom_window.h"
-#include "platform/sdl_window.h"
 
 
 

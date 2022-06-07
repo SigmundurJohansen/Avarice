@@ -1,9 +1,8 @@
 #pragma once
 #include <iostream>
 #include <vulkan/vulkan.h>
+#include "vulkan_includes.h"
 
-#define VMA_IMPLEMENTATION
-#include <../external/VulkanMemoryAllocator/include/vk_mem_alloc.h>
 
 #define VK_CHECK(x)                                                 \
     do{                                                             \
