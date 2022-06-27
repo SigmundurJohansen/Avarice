@@ -3,14 +3,13 @@
 
 #include "../platform/window.h"
 #include <GLFW/glfw3.h>
-#include <inputs/multiplatform_input.h>
 
 namespace Avarice
 {
     class CustomWindow : public Window
     {
     public:
-        CustomWindow() = default;
+        CustomWindow();
         void OpenWindow(WindowData _data) override;
         bool Update() override;
 
@@ -19,8 +18,6 @@ namespace Avarice
         void RegisterWindowResizedCallback(std::function<void()> callback) override { _resizeCallback = callback; }
 
     private:
-        std::unordered_map<InputKey, InputDeviceState> getGamepadState(int joystickId);
-        MultiplatformInput _input {};
         GLFWwindow *m_Window;
 
         

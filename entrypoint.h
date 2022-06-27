@@ -7,6 +7,7 @@ int main(int argc, char **argv)
 {
 
     auto* theGame = Avarice::CreateGame();
+    
     theGame->Run();
 
     delete theGame;
