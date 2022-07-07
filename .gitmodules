@@ -4,9 +4,3 @@
 [submodule "external/glfw"]
 	path = external/glfw
 	url = https://github.com/glfw/glfw
-[submodule "external/vk-bootstrap"]
-	path = external/vk-bootstrap
-	url = git@github.com:charles-lunarg/vk-bootstrap.git
-[submodule "external/VulkanMemoryAllocator"]
-	path = external/VulkanMemoryAllocator
-	url = git@github.com:GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git

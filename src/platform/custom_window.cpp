@@ -1,6 +1,7 @@
 #include <stdexcept> // for exception, runtime_error, out_of_range
 #include <iostream>
 #include "custom_window.h"
+#include <any>
 
 namespace Avarice
 {
@@ -9,7 +10,7 @@ namespace Avarice
     {
         m_Window = nullptr;
     }
-    
+
     void CustomWindow::OpenWindow(WindowData _data)
     {
         glfwInit();
@@ -17,7 +18,7 @@ namespace Avarice
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
         m_Window = glfwCreateWindow(_data.width, _data.height, _data.title.c_str(), nullptr, nullptr);
-        //SetupImgui();
+        // SetupImgui();
     }
 
     bool CustomWindow::Update()
@@ -53,7 +54,7 @@ namespace Avarice
                 throw std::runtime_error("Failed to create window surface!");
             }
         }
-        catch (std::bad_any_cast &e)
+        catch (std::any_cast &e)
         {
             std::cout << "Failed to cast window surface arguments: " << e.what() << "\n";
         }

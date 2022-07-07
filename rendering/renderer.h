@@ -18,7 +18,7 @@ namespace Avarice
         virtual void Init(RendererSettings) = 0;
         virtual ~Renderer() = default;
         virtual void Shutdown() = 0;
-        virtual void BeginFrame() = 0;
+        virtual VkCommandBuffer BeginFrame() = 0;
         virtual void EndFrame() = 0;
         virtual void DrawIndexBuffer(IndexBuffer* buffer) = 0;
         virtual void WaitForIdle() = 0;

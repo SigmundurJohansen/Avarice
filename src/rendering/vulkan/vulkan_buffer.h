@@ -2,78 +2,57 @@
 #pragma once
 #include "../rendering/buffer.h"
 #include <vulkan/vulkan.h>
-#include <memory>
 #include "vulkan_utilities.h"
-#include <vector>
+#include "vulkan_device.h"
 
 namespace Avarice
 {
-    class VulkanRenderer;
 
-    struct VulkanBuffer
-    {
-        VulkanBuffer(VmaAllocator *_allocator, uint64_t _bufferSize, VkBufferUsageFlags _bufferUsage, VmaMemoryUsage _vmaUsage);
-        ~VulkanBuffer();
+  class VulkanBuffer
+  {
+  public:
+    VulkanBuffer(VulkanDevice &_device, VkDeviceSize _instanceSize, uint32_t _instanceCount, VkBufferUsageFlags _usageFlags,
+                 VkMemoryPropertyFlags _memoryPropertyFlags, VkDeviceSize _minOffsetAlignment = 1);
+    ~VulkanBuffer();
 
-        void UploadData(int *_data, uint64_t _bufferSize);
-        VkBuffer Buffer;
-        VmaAllocation Allocation{nullptr};
-        static void CopyBuffer(VkDevice *_device, VkCommandPool *_commandPool, VkQueue *_queue,
-                               VulkanBuffer *_srcBuffer, VulkanBuffer *_dstBuffer, VkDeviceSize _size);
-        static void CopyBufferToImage(VkCommandBuffer _cmd, VkImageLayout _dstImageLayout, VulkanBuffer *_srcBuffer,
-                                      VkImage *_dstImage, VkExtent3D _imageExtent);
+    VulkanBuffer(const VulkanBuffer &) = delete;
+    VulkanBuffer &operator=(const VulkanBuffer &) = delete;
 
-    private:
-        VmaAllocator *m_allocator{nullptr};
-    };
+    VkResult map(VkDeviceSize _size = VK_WHOLE_SIZE, VkDeviceSize _offset = 0);
+    void unmap();
 
-    class VulkanVertexBuffer : public VertexBuffer
-    {
-    public:
-        explicit VulkanVertexBuffer(VulkanRenderer *_renderer);
-        ~VulkanVertexBuffer() override;
+    void writeToBuffer(void *_data, VkDeviceSize _size = VK_WHOLE_SIZE, VkDeviceSize _offset = 0);
+    VkResult flush(VkDeviceSize _size = VK_WHOLE_SIZE, VkDeviceSize _offset = 0);
+    VkDescriptorBufferInfo descriptorInfo(VkDeviceSize _size = VK_WHOLE_SIZE, VkDeviceSize _offset = 0);
+    VkResult invalidate(VkDeviceSize _size = VK_WHOLE_SIZE, VkDeviceSize _offset = 0);
 
-        void UploadData(const std::vector<Vertex> &_vertices) override;
-        void Bind() override;
-        uint64_t GetCount() override { return m_count; };
+    void writeToIndex(void *_data, int _index);
+    VkResult flushIndex(int _index);
+    VkDescriptorBufferInfo descriptorInfoForIndex(int _index);
+    VkResult invalidateIndex(int _index);
 
-    private:
-        VulkanRenderer *m_renderer;
-        uint64_t m_bufferSize;
-        std::shared_ptr<VulkanBuffer> m_buffer{nullptr};
-        uint64_t m_count = 0;
-    };
+    VkBuffer getBuffer() const { return m_buffer; }
+    void *getMappedMemory() const { return m_mapped; }
+    uint32_t getInstanceCount() const { return m_instanceCount; }
+    VkDeviceSize getInstanceSize() const { return m_instanceSize; }
+    VkDeviceSize getAlignmentSize() const { return m_instanceSize; }
+    VkBufferUsageFlags getUsageFlags() const { return m_usageFlags; }
+    VkMemoryPropertyFlags getMemoryPropertyFlags() const { return m_memoryPropertyFlags; }
+    VkDeviceSize getBufferSize() const { return m_bufferSize; }
 
-    class VulkanIndexBuffer : public IndexBuffer
-    {
-    public:
-        explicit VulkanIndexBuffer(VulkanRenderer *_renderer);
-        ~VulkanIndexBuffer() override;
-        void Bind() override;
-        void UploadData(const std::vector<uint32_t> &_vector) override;
-        uint64_t GetCount() override { return m_count; };
+  private:
+    static VkDeviceSize getAlignment(VkDeviceSize _instanceSize, VkDeviceSize _minOffsetAlignment);
 
-    private:
-        VulkanRenderer *m_renderer;
-        uint64_t m_bufferSize;
-        std::shared_ptr<VulkanBuffer> m_buffer{nullptr};
-        uint64_t m_count = 0;
-    };
+    VulkanDevice &m_device;
+    void *m_mapped = nullptr;
+    VkBuffer m_buffer = VK_NULL_HANDLE;
+    VkDeviceMemory m_memory = VK_NULL_HANDLE;
 
-    class VulkanUniformBuffer : public UniformBuffer
-    {
-    public:
-        explicit VulkanUniformBuffer(VulkanRenderer *_renderer);
-        ~VulkanUniformBuffer() override;
-        VkDescriptorSet GetDescriptorSet(VkDescriptorSetLayout *_descriptorSetLayout);
-        void ResetDescriptorSet();
-        void Bind() override;
-        void UploadData(const UniformBufferObject &_object) override;
-
-    private:
-        VulkanRenderer *m_renderer;
-        VkDescriptorSet m_descriptorSet{VK_NULL_HANDLE};
-        uint64_t m_bufferSize;
-        std::shared_ptr<VulkanBuffer> m_buffer{nullptr};
-    };
+    VkDeviceSize m_bufferSize;
+    uint32_t m_instanceCount;
+    VkDeviceSize m_instanceSize;
+    VkDeviceSize m_alignmentSize;
+    VkBufferUsageFlags m_usageFlags;
+    VkMemoryPropertyFlags m_memoryPropertyFlags;
+  };
 }
